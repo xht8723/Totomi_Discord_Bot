@@ -1,5 +1,5 @@
 # totomiBot
-A basic discord bot
+Master version is for Ubuntu machine, checkout windows branch for windows machine.
 
 A basic discord bot. *Dedicated to ONLY 1 DISCORD SERVER.*
 
