@@ -35,8 +35,7 @@ async function songQue(message, serverQue){
 		url: songInfo.url,		
 	};
 	
-	if(!serverQue){
-		
+	if(!serverQue || serverQue.songs == []){
 		const queContruct = {
 		textChannel: message.channel,
 		voiceChannel: voiceChannel,
@@ -44,7 +43,6 @@ async function songQue(message, serverQue){
 		songs:[],
 		volume: 5,
 		playing: true,
-		
 	};
 	
 	que.set(message.guild.id, queContruct);
@@ -133,14 +131,12 @@ client.on('message', async message => {
 				if(!serverQue){break;}
 				serverQue.songs = [];
 				serverQue.connection.dispatcher.end();
-				connection = await message.member.voice.channel.leave();
 				break;
 				
 			case config.cmdLeave2:
 				if(!serverQue){break;}
 				serverQue.songs = [];
 				serverQue.connection.dispatcher.end();
-				connection = await message.member.voice.channel.leave();
 				break;
 				
 			case config.cmdRoll:
