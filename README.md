@@ -27,7 +27,7 @@ command and prefix can be personalized in json file.
 6.Done. Enjoy your own bot.
 
 
-#中文
+###中文
 Master branch是给Ubuntu机器用的，如果你是Windows，请查看Windows branch.
 
 一个基础的免费音乐bot，可以在discord语音频道中播放youtube视频。
@@ -36,7 +36,7 @@ Master branch是给Ubuntu机器用的，如果你是Windows，请查看Windows b
 在discord里打-help查看指令。
 指令等可以在config.json文件中自定义。
 
-##如何使用
+####如何使用
 
 1.安装node.js，善用搜索。**注意Master branch是给ubuntu机器的，windows版在windows branch里。**
 
