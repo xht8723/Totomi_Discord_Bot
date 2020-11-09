@@ -12,7 +12,10 @@ Dice rolling. Command `-roll <int>`
 
 command and prefix can be personalized in json file.
 
+
+
 **How to use:**
+
 1.Install node.js, search for how to install as it depands on different operating systems. **Though this master version is for Ubuntu. Checkout windows branch if you are using windows VM**
 
 2.Apply for discord API services, and create a bot identity in https://discord.com/developers/applications. Copy the token.
