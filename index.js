@@ -30,14 +30,10 @@ async function songQue(message, serverQue){
 	
 	const songInfo = await ytdl.getInfo(args[1],{quality: "highestaudio"});
 	
-	console.log(songInfo);
-	
 	const song = {
 		title: songInfo.videoDetails.title,
 		url: songInfo.url,		
 	};
-	
-	console.log(song.title);
 	
 	if(!serverQue){
 		
@@ -133,10 +129,17 @@ client.on('message', async message => {
 			
 			
 			case config.cmdLeave:
+			
+				if(!serverQue){break;}
+				serverQue.songs = [];
+				serverQue.connection.dispatcher.end();
 				connection = await message.member.voice.channel.leave();
 				break;
 				
 			case config.cmdLeave2:
+				if(!serverQue){break;}
+				serverQue.songs = [];
+				serverQue.connection.dispatcher.end();
 				connection = await message.member.voice.channel.leave();
 				break;
 				
