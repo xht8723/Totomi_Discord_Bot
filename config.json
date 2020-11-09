@@ -1,0 +1,12 @@
+{
+	"prefix": "-",
+	"token": "your token here.",
+	"cmdPlay": "p",
+	"cmdSkip": "skip",
+	"cmdAdd": "add",
+	"cmdLeave": "l",
+	"cmdLeave2": "L",
+	"cmdRoll": "roll",
+	"cmdAV": "AV",
+	"cmdHelp": "help"
+}
