@@ -157,7 +157,7 @@ client.on('message', async message => {
 				break;
 			
 			case config.cmdHelp:
-				message.channel.send('播放音乐: `-p <youtube链接>` \n离开频道: `-l | -L` \n骰子<范围>: `-roll <int>`\n \n:kiss:成人:kiss:刺激:kiss:好康:kiss:： `-AV`');
+				message.channel.send('播放音乐: `-p <youtube链接>` \n离开频道: `-l | -L` \n切歌： `-skip` \n骰子<范围>: `-roll <int>`\n \n:kiss:成人:kiss:刺激:kiss:好康:kiss:： `-AV`');
 				break;
 			
 		}
