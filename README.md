@@ -1,4 +1,4 @@
-# totomiBot
+# TotomiBot
 Master version is for Ubuntu machine, checkout windows branch for windows machine.
 
 
