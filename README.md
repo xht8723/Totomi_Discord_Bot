@@ -18,17 +18,16 @@ command and prefix can be personalized in json file.
 
 2.Apply for discord API services, and create a bot identity in https://discord.com/developers/applications. Copy the token.
 
-3.Download this package and unpack them. Open config.json with txt editor, paste the token after "token" line.
+3.Download `index.js` and `config.json` from here. Open `config.json` with txt editor, paste the token after "token" line.
 
-4.Direct your console to the file folder. Type `node index.js` to run it.
+4.Direct your console to the file folder contains `index.js` and `config.json`. Type ```npm i totomi_bot``` to install the packages needed.
 
-5.In discord application page, in OAuth2 tab, check "bot", scroll down, check "Send messages", "View Channels", "Connect", "Speak". Now you have your bot invitation link displayed above. Invite your bot into your channel.
+5.Run bot with `node index.js` in console.
 
-6.Done. Enjoy your own bot.
+6.In discord application page, in OAuth2 tab, check "bot", scroll down, check "Send messages", "View Channels", "Connect", "Speak". Now you have your bot invitation link displayed above. Invite your bot into your channel.
 
-UPDATE:Now you can ```npm i totomi_bot``` for easier package installation.
-Copy index.js to the folder and run it.
-Don't forget to change token.
+
+
 
 ## 中文
 Master branch是给Ubuntu机器用的，如果你是Windows，请查看Windows branch.
@@ -45,15 +44,10 @@ Master branch是给Ubuntu机器用的，如果你是Windows，请查看Windows b
 
 2.申请discord API服务，并建立一个bot：https://discord.com/developers/applications 复制bot下面的token
 
-3.下载totomiBot，用笔记本打开config.json，粘贴刚才的token进里面的提示区域。
+3.用console cd到想要的文件夹，使用```npm i totomi_bot```来安装packages.
 
-4.用console打开到文件目录，输入 `node index.js` 运行bot脚本。
+4.把这个repo的`index.js`以及`config.json`复制到那个文件夹里，并打开`config.json`，在其中`token`那一栏里，把你上面拿到的discord token复制进去。
+
+5.在console输入`node index.js`，运行bot.
 
 5.在上面的discord application页面，打开OAuth2，把里面的Bot打勾，然后再把下面的"Send messages", "View Channels", "Connect", "Speak"打勾。然后在上面你就会得到一个邀请链接。你现在可以邀请你的bot进入你的频道了。
-
-6.结束。
-
-更新：使用```npm i totomi_bot```来快速安装package.
-把index.js复制到安装package的文件夹里，运行。
-别忘了更换token.
-
