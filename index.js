@@ -32,7 +32,7 @@ async function songQue(message, serverQue){
 	
 	const song = {
 		title: songInfo.videoDetails.title,
-		url: songInfo.url,		
+		url: songURL,		
 	};
 	
 	if(!serverQue || serverQue.songs == []){
