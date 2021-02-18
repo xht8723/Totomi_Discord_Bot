@@ -26,6 +26,9 @@ command and prefix can be personalized in json file.
 
 6.Done. Enjoy your own bot.
 
+UPDATE:Now you can ```npm i totomi_bot``` for easier package installation.
+Copy index.js to the folder and run it.
+Don't forget to change token.
 
 ## 中文
 Master branch是给Ubuntu机器用的，如果你是Windows，请查看Windows branch.
@@ -49,4 +52,8 @@ Master branch是给Ubuntu机器用的，如果你是Windows，请查看Windows b
 5.在上面的discord application页面，打开OAuth2，把里面的Bot打勾，然后再把下面的"Send messages", "View Channels", "Connect", "Speak"打勾。然后在上面你就会得到一个邀请链接。你现在可以邀请你的bot进入你的频道了。
 
 6.结束。
+
+更新：使用```npm i totomi_bot```来快速安装package.
+把index.js复制到安装package的文件夹里，运行。
+别忘了更换token.
 
