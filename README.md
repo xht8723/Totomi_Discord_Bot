@@ -10,4 +10,6 @@ excute commands use natural languages.
 more LLMs  
 context for ollama
 make this a COG  
-windows tray
+
+bugs:
+windows tray cannot close gracefully.
