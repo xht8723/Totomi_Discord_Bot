@@ -101,6 +101,33 @@ async def chatGPTPOST(**kwargs):
     )
     return stream
 
+
+#----------------------------------------------------------------------------------------------------------
+
+async def claudePOST(**kwargs):
+    prompt = ''
+    for x in kwargs['prompt']:
+        prompt = prompt + x + ' '
+
+    data = {
+        'model':'llama3',
+        "stream": False,
+        'system': kwargs['system'],
+        'temperature':0.8,
+        'messages': [
+            {
+                'role':'system',
+                'content':kwargs['system']
+            },
+            {
+                'role':'user',
+                'content':kwargs['prompt']
+            }
+        ]
+    }
+    return data
+
+
 #----------------------------------------------------------------------------------------------------------
 
 @commands.hybrid_command(description="Set the model to either 'chatgpt' or 'ollama'.")

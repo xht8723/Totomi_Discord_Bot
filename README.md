@@ -1,2 +1,9 @@
 # TotomiBot
-一个Discord Bot，可以连接到本地运行的Ollama LLM
+一个使用LLMs的Discord机器人。  
+chatgpt  
+claude3  
+  
+todos:  
+chat context  
+excute commands use natural languages.
+more LLMS
