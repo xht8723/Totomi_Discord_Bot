@@ -6,8 +6,8 @@ Based on [discord.py](https://github.com/Rapptz/discord.py)
 
 ## Dependencies
 ```pip install discord.py```  
-```pip install requests```
-```pip install openai```
+```pip install requests```  
+```pip install openai```  
 
 ## Use
 download the repo and unzip to your prefered location  
