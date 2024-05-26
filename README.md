@@ -4,6 +4,10 @@ chatgpt
 ollama  
   
 todos:  
-chat context  
+logs
+send picture  
 excute commands use natural languages.  
-more LLMs
+more LLMs  
+context for ollama
+make this a COG  
+windows tray
