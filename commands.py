@@ -52,7 +52,7 @@ async def totomi(ctx, *, prompt: str):
     return
 #----------------------------------------------------------------------------------------------------------
 
-@commands.hybrid_command(description="Set the model to either 'chatgpt' or 'ollama'.")
+@commands.hybrid_command(description="gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama.")
 async def usemodel(ctx, model: str):
     with open('config.json','r') as file:
         data = json.load(file)
