@@ -56,8 +56,6 @@ async def totomi(ctx, *, prompt: str):
 async def usemodel(ctx, model: str):
     with open('config.json','r') as file:
         data = json.load(file)
-
-    if model == 'chatgpt' or model == 'ollama': 
         data['model'] = model
         await ctx.send(f'Changed model to {model}')
         with open('config.json', 'w') as file:
