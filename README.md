@@ -29,5 +29,7 @@ more LLMs
 context for ollama  
 make this a COG  
 
+### Ultimate goal: Chat with gpt-4o in voice channel!
+
 ### knwon bugs:
 windows tray cannot close gracefully.
