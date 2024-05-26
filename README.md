@@ -1,5 +1,8 @@
 # TotomiBot
-A discord bot that utilized popular LLMs inlcuding chatgpt
+[中文](/README_CN.md)  
+  
+A discord bot that utilized popular LLMs inlcuding chatgpt  
+  
 ![image](https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/8e39753e-286c-4dc3-b6a7-39469dabf905)
 ![image](https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/6fad4881-f41a-4d91-bc9b-363385fcb1cc)
 Based on [discord.py](https://github.com/Rapptz/discord.py)
@@ -25,6 +28,8 @@ excute commands use natural languages.
 more LLMs  
 context for ollama  
 make this a COG  
+
+### Ultimate goal: Chat with gpt-4o in voice channel!
 
 ### knwon bugs:
 windows tray cannot close gracefully.
