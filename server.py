@@ -1,10 +1,6 @@
-import discord
-import DiscordToken #Delete this..
 from discord.ext import commands
 import commands as cmds
 import utilities as ut
-
-#----------------------------------------------------------------------------------------------------------
 
 class Totomi(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -14,6 +10,9 @@ class Totomi(commands.Bot):
         self.add_command(cmds.help)
         self.add_command(cmds.set_context_length)
 
+    async def stop(self):
+        await self.close()
+    
     async def on_ready(self):
         if not ut.checkSQL():
             ut.initSQL()
@@ -28,16 +27,3 @@ class Totomi(commands.Bot):
 
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('------')
-
-
-
-
-#----------------------------------------------------------------------------------------------------------
-
-
-#----------------------------------------------------------------------------------------------------------
-intents = discord.Intents.default()
-intents.message_content = True
-intents.guilds = True
-client = Totomi(command_prefix='_', intents=intents, help_command=None)
-client.run(DiscordToken.totomiT()) #change to your token value
