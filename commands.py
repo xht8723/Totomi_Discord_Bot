@@ -41,7 +41,6 @@ async def totomi(ctx, *, prompt: str):
             data = await chatGPTPOST(prompt = prompt, system = systemP, 
                                      model = model, context = context, ctx = ctx)
             await ctx.send(data.choices[0].message.content)
-            print(str(data.choices[0].message) + '\n')
             if ctx.guild == None:
                 guild = 'DM'
             else:
