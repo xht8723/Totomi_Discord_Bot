@@ -6,6 +6,7 @@ from discord.ext import commands
 import utilities as ut
 
 SQL = 'chat_history.db'
+MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama']
 
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description="start chat!")
@@ -55,11 +56,14 @@ async def totomi(ctx, *, prompt: str):
 @commands.hybrid_command(description="gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama.")
 async def usemodel(ctx, model: str):
     with open('config.json','r') as file:
-        data = json.load(file)
-        data['model'] = model
-        await ctx.send(f'Changed model to {model}')
-        with open('config.json', 'w') as file:
-            json.dump(data, file)
+        if model in MODELS:
+            data = json.load(file)
+            data['model'] = model
+            await ctx.send(f'Changed model to {model}')
+            with open('config.json', 'w') as file:
+                json.dump(data, file)
+        else:
+            await ctx.send(f'Check spelling, no such model: {model}')
     return
 #----------------------------------------------------------------------------------------------------------
 
@@ -138,7 +142,7 @@ async def claudePOST(**kwargs):
     }
     return data
 #----------------------------------------------------------------------------------------------------------
-def compileOllamaPost(**kwargs):
+async def compileOllamaPost(**kwargs):
     prompt = ''
     for x in kwargs['prompt']:
         prompt = prompt + x + ' '
@@ -160,3 +164,13 @@ def compileOllamaPost(**kwargs):
         ]
     }
     return data
+
+#----------------------------------------------------------------------------------------------------------
+async def getModelStatus():
+    try:
+        with open('config.json', 'r') as file:
+            data = json.load(file) 
+        return data['model']
+    except:
+        print('No config.json found')
+        return

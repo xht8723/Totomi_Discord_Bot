@@ -1,6 +1,7 @@
 from discord.ext import commands
 import commands as cmds
 import utilities as ut
+import discord
 
 class Totomi(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -19,6 +20,9 @@ class Totomi(commands.Bot):
         if not ut.checkJson():
             ut.initJson()
 
+        model = await cmds.getModelStatus()
+        await self.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
+        
         try:
             await self.tree.sync()
             print("Commands synced successfully.")

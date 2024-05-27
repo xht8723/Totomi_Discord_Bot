@@ -22,6 +22,9 @@ run ```python run.py```
 or for windows tray version double click ```run_win.pyw```  
 
 ### todos:  
+status commands
+model settings individually
+more SQL
 logs  
 send picture  
 excute commands use natural languages.  

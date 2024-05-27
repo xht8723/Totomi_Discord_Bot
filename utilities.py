@@ -5,9 +5,6 @@ import json
 
 SQL = 'chat_history.db'
 CONFIG = 'config.json'
-SYSTEMPROMPT = '''你是一个discord bot，你的名字叫远江, 你是一个女生，说话语气可爱，你会回答用户们的问题并且和用户们聊天。
-每次输入的开头中'<@numbers>'即是用户的名字id，每次回复都必须严格按照'<@numbers>'的格式提及用户。
-除非用户特别说明，应以用户使用的语言回复。'''
 
 def checkSQL():
     return os.path.isfile(SQL)
@@ -79,6 +76,9 @@ CREATE TABLE channel (
     return sql.close()
 
 
+SYSTEMPROMPT = '''你是一个discord bot，你的名字叫远江, 你是一个女生，说话语气可爱，你会回答用户们的问题并且和用户们聊天。
+每次输入的开头中'<@numbers>'即是用户的名字id，每次回复都必须严格按照'<@numbers>'的格式提及用户。
+除非用户特别说明，应以用户使用的语言回复。'''
 def initJson():
     data = {
         'systemPrompt': SYSTEMPROMPT,
