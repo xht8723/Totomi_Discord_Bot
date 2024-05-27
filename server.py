@@ -10,6 +10,7 @@ class Totomi(commands.Bot):
         self.add_command(cmds.usemodel)
         self.add_command(cmds.help)
         self.add_command(cmds.set_context_length)
+        self.add_command(cmds.check_model)
 
     async def stop(self):
         await self.close()
@@ -22,7 +23,7 @@ class Totomi(commands.Bot):
 
         model = await cmds.getModelStatus()
         await self.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
-        
+
         try:
             await self.tree.sync()
             print("Commands synced successfully.")

@@ -88,7 +88,7 @@ async def usemodel(ctx, model: str):
         with open('config.json', 'w') as file:
             json.dump(data, file)
     else:
-        await ctx.send(f'Check spelling, no such model: {model}')
+        await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
     return
 #----------------------------------------------------------------------------------------------------------
 
@@ -124,8 +124,9 @@ async def set_context_length(ctx, mode:str, length:str):
 async def check_model(ctx):
     with open('config.json', 'r') as file:
         data = json.load(file)
-    await ctx.send(f'Currently using LLM: {data['model']}')
-    await ctx.send('All available models: gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku')
+    model = '**' + data['model'] + '**'
+    await ctx.send(f'Currently using LLM: {model}')
+    await ctx.send('All available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
 
 #----------------------------------------------------------------------------------------------------------
 #HELPERS

@@ -86,10 +86,11 @@ def initJson():
         'normalModeContextLength':'5',
         'threadModeContextLength':'-1',
         'commands': [
-            {'command':'help', 'description':'```/help```Help'},
-            {'command':'totomi', 'description':'```/totomi <propmt>```Start chat with Totomi!'},
-            {'command':'usemodel', 'description':'```/usemodel <model name>```change LLM model.\nAvailable models: gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku'},
-            {'command':'set_context_length', 'description':'```/set_context_length <mode> <length>```\"thread\" mode or \"normal\" mode\n Set the context length of your chat.'}
+            {'command':'help', 'description':'```/help```\tHelp'},
+            {'command':'totomi', 'description':'```/totomi <propmt>```\tStart chat with Totomi!'},
+            {'command':'usemodel', 'description':'```/usemodel <model name>```\tchange LLM model.\n\tAvailable models: gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku'},
+            {'command':'set_context_length', 'description':'```/set_context_length <mode> <length>```\t\"thread\" mode or \"normal\" mode\n\tSet the context length of your chat.'},
+            {'command':'check_model', 'description':'```/check_model```\tprints current using LLM model plus all available models.'}
         ]
     }
     with open('config.json', 'w') as file:
