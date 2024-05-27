@@ -4,6 +4,7 @@ import json
 import DiscordToken #Delete this..
 from discord.ext import commands
 import utilities as ut
+import discord
 
 SQL = 'chat_history.db'
 MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama']
@@ -60,6 +61,7 @@ async def usemodel(ctx, model: str):
             data = json.load(file)
             data['model'] = model
             await ctx.send(f'Changed model to {model}')
+            await ctx.bot.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
             with open('config.json', 'w') as file:
                 json.dump(data, file)
         else:
