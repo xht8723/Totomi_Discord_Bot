@@ -95,7 +95,7 @@ async def usemodel(ctx, model: str):
         await ctx.send(f'Changed model to {model}')
         await ctx.bot.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
         with open(CONFIG, 'w') as file:
-            json.dump(data, file)
+            json.dump(data, file, indent = '\t')
     else:
         await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
     return

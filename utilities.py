@@ -109,4 +109,4 @@ def initJson():
         ]
     }
     with open(CONFIG, 'w') as file:
-        json.dump(data, file)
+        json.dump(data, file, indent = '\t')
