@@ -74,21 +74,21 @@ async def totomi(ctx, *, prompt: str):
 @commands.hybrid_command(description="gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
 async def usemodel(ctx, model: str):
     with open('config.json','r') as file:
-        if model in MODELS:
-            if model == 'claude-3-opus':
-                model = 'claude-3-opus-20240229'
-            if model == 'claude-3-sonnet':
-                model = 'claude-3-sonnet-20240229'
-            if model == 'claude-3-haiku':
-                model = 'claude-3-haiku-20240307'
-            data = json.load(file)
-            data['model'] = model
-            await ctx.send(f'Changed model to {model}')
-            await ctx.bot.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
-            with open('config.json', 'w') as file:
-                json.dump(data, file)
-        else:
-            await ctx.send(f'Check spelling, no such model: {model}')
+        data = json.load(file)
+    if model in MODELS:
+        if model == 'claude-3-opus':
+            model = 'claude-3-opus-20240229'
+        if model == 'claude-3-sonnet':
+            model = 'claude-3-sonnet-20240229'
+        if model == 'claude-3-haiku':
+            model = 'claude-3-haiku-20240307'
+        data['model'] = model
+        await ctx.send(f'Changed model to {model}')
+        await ctx.bot.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
+        with open('config.json', 'w') as file:
+            json.dump(data, file)
+    else:
+        await ctx.send(f'Check spelling, no such model: {model}')
     return
 #----------------------------------------------------------------------------------------------------------
 
@@ -118,6 +118,14 @@ async def set_context_length(ctx, mode:str, length:str):
         data['threadModeContextLength'] = length
         await ctx.send(f'Set Normal mode context length to: {length}')
     return
+#----------------------------------------------------------------------------------------------------------
+
+@commands.hybrid_command(description = 'check current model')
+async def check_model(ctx):
+    with open('config.json', 'r') as file:
+        data = json.load(file)
+    await ctx.send(f'Currently using LLM: {data['model']}')
+    await ctx.send('All available models: gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku')
 
 #----------------------------------------------------------------------------------------------------------
 #HELPERS
