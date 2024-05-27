@@ -13,7 +13,7 @@ def run_script():
     intents = discord.Intents.default()
     intents.message_content = True
     intents.guilds = True
-    client = server.Totomi(command_prefix='_', intents=intents, help_command=None)
+    client = server.Totomi(command_prefix='-', intents=intents, help_command=None)
     client.run(DiscordToken.totomiT()) #change to your token value
 
 def main():

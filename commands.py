@@ -17,6 +17,7 @@ VISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus-20240229', 'claude-3-so
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description = 'clear context, start a new chat.')
 async def newchat(ctx):
+    ut.logRequest(ctx)
     ctx.bot.NEWCHAT = 1
     await ctx.send('Cleared context!')
     return
@@ -39,9 +40,10 @@ async def totomi(ctx, *, prompt: str):
         guild = str(ctx.guild.id)
 
     prompt = 'From user ' + f'<@{str(ctx.author.id)}>: ' + prompt 
-    
+
     if ctx.bot.NEWCHAT == 1:
         context = []
+        ctx.bot.NEWCHAT = 0
     else:
         context = ut.get_latest_guild_messages(str(ctx.channel.id), guild, normalModeContextLength)
 
@@ -73,7 +75,8 @@ async def totomi(ctx, *, prompt: str):
             data = await claudePOST(prompt = prompt, system = systemP, 
                                      model = model, context = context, ctx = ctx, 
                                      img = None, attachment = None)
-            await ctx.send(data.content[0].text)
+            reply = data.content[0].text + '\n\n' + '*token spent: ' + str(data.usage.input_tokens + data.usage.output_tokens) + '*'
+            await ctx.send(reply)
 
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
@@ -84,11 +87,15 @@ async def totomi(ctx, *, prompt: str):
 @commands.hybrid_command(description = 'ask AI about an image')
 @app_commands.describe(prompt = 'ask something', image = 'drag your image here')
 async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
-    ut.logRequest(ctx, prompt + 'file: ' + image.filename)
+    ut.logRequest(ctx, prompt + ' file: ' + image.filename)
 
     with open(CONFIG, 'r') as file:
         data = json.load(file)
 
+    _, fileExtension = os.path.splitext(image.filename)
+    fileExtension = fileExtension[1:]
+    if fileExtension == 'jpg':
+        fileExtension = 'jpeg'
     systemP = data['systemPrompt']
     model = data['model']
 
@@ -115,16 +122,25 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
     await ctx.defer()
     await image.save(fp = path)
     b64img = await encode_image(path)
-    imgDataUrl = f"data:image/jpeg;base64,{b64img}"
+    imgDataUrl = f"data:image/{fileExtension};base64,{b64img}"
 
     if model == 'gpt-4o' or model == 'gpt-4-turbo':
         data = await chatGPTPOST(prompt = prompt, system = systemP, 
                                 model = model, context = None, ctx = ctx, 
-                                img = imgDataUrl, attachment = None)
+                                img = imgDataUrl, attachment = None, fileExtension = fileExtension)
         reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
         await ctx.send(reply)
         ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
         ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
+
+    if model == 'claude-3-opus-20240229' or model == 'claude-3-sonnet-20240229' or model == 'claude-3-haiku-20240307':
+        data = await claudePOST(prompt = prompt, system = systemP, 
+                                model = model, context = None, ctx = ctx, 
+                                img = b64img, attachment = None, fileExtension = fileExtension)
+        reply = data.content[0].text + '\n\n' + '*token spent: ' + str(data.usage.input_tokens + data.usage.output_tokens) + '*'
+        await ctx.send(reply)
+        ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
+        ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
 
 
 #----------------------------------------------------------------------------------------------------------
@@ -234,25 +250,39 @@ async def chatGPTPOST(**kwargs):
 #----------------------------------------------------------------------------------------------------------
 async def claudePOST(**kwargs):
     msg = []
-    last_role = None
-    for each in kwargs['context']:
-        current_role = 'assistant' if each[0] == str(kwargs['ctx'].me.id) else 'user'
-        if last_role == current_role:
-            msg = []
-            break
-        msg.append(
-            {'role': current_role, 'content': each[1]}
-        )
-        last_role = current_role
-    try:
-        if msg[0]['role'] == 'assistant':
-            msg.pop(0)
-        if msg[len(msg)-1]['role'] == 'user':
-            msg.pop(len(msg)-1)
+    if kwargs['img'] == None and kwargs['attachment'] == None:
+        last_role = None
+        for each in kwargs['context']:
+            current_role = 'assistant' if each[0] == str(kwargs['ctx'].me.id) else 'user'
+            if last_role == current_role:
+                msg = []
+                break
+            msg.append(
+                {'role': current_role, 'content': each[1]}
+            )
+            last_role = current_role
+        try:
+            if msg[0]['role'] == 'assistant':
+                msg.pop(0)
+            if msg[len(msg)-1]['role'] == 'user':
+                msg.pop(len(msg)-1)
 
-    except IndexError as e:
+        except IndexError as e:
+            pass
+        msg.append({"role": "user", "content": kwargs['prompt']})
+
+    elif kwargs['attachment'] == None:
+        content = []
+        extension = kwargs['fileExtension']
+        content.append({'type':'image', 'source':{
+            'type':'base64',
+            'media_type': f'image/{extension}',
+            'data':kwargs['img']
+        }})
+        msg.append({'role':'user', 'content':content})
+    else:
         pass
-    msg.append({"role": "user", "content": kwargs['prompt']})
+
     claudeClient = AsyncAnthropic(api_key=DiscordToken.claude())
     stream = await claudeClient.messages.create(
         model = kwargs['model'],
