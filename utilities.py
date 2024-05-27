@@ -2,9 +2,23 @@ import sqlite3
 from datetime import datetime
 import os
 import json
+import inspect
 
 SQL = 'chat_history.db'
 CONFIG = 'config.json'
+
+def logRequest(ctx, requests=''):
+    stack = inspect.stack()
+    caller = stack[1]
+    caller_name = caller.function
+    rq = f'[{datetime.now().strftime("%Y-%m-%dT%H:%M:%S")}] from user {str(ctx.author.display_name)}:{str(ctx.author.id)} in channel {str(ctx.channel.id)}; func: {caller_name}; content: {requests}'
+    print(rq)
+    return rq
+
+def isAdmin(userId):
+    with open(CONFIG,'r') as file:
+        data = json.load(file)
+    return userId in data['admins']
 
 def checkSQL():
     return os.path.isfile(SQL)
@@ -85,6 +99,7 @@ def initJson():
         'model': 'gpt-3.5-turbo',
         'normalModeContextLength':'5',
         'threadModeContextLength':'-1',
+        'admins':['admin ID'],
         'commands': [
             {'command':'help', 'description':'```/help```\tHelp'},
             {'command':'totomi', 'description':'```/totomi <propmt>```\tStart chat with Totomi!'},
@@ -93,5 +108,5 @@ def initJson():
             {'command':'check_model', 'description':'```/check_model```\tprints current using LLM model plus all available models.'}
         ]
     }
-    with open('config.json', 'w') as file:
+    with open(CONFIG, 'w') as file:
         json.dump(data, file)

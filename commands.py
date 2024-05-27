@@ -8,12 +8,16 @@ import utilities as ut
 import discord
 
 SQL = 'chat_history.db'
+CONFIG = 'config.json'
 MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
 
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description="start chat!")
 async def totomi(ctx, *, prompt: str):
-    with open('config.json', 'r') as file:
+    ut.logRequest(ctx, prompt)
+    await ctx.defer()
+
+    with open(CONFIG, 'r') as file:
         data = json.load(file)
 
     systemP = data['systemPrompt']
@@ -73,8 +77,13 @@ async def totomi(ctx, *, prompt: str):
 
 @commands.hybrid_command(description="gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
 async def usemodel(ctx, model: str):
-    with open('config.json','r') as file:
+    ut.logRequest(ctx, model)
+
+    with open(CONFIG,'r') as file:
         data = json.load(file)
+    if not ut.isAdmin(str(ctx.author.id)):
+        await ctx.send('You don\'t have the authorization to change AI models.')
+        return
     if model in MODELS:
         if model == 'claude-3-opus':
             model = 'claude-3-opus-20240229'
@@ -85,7 +94,7 @@ async def usemodel(ctx, model: str):
         data['model'] = model
         await ctx.send(f'Changed model to {model}')
         await ctx.bot.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
-        with open('config.json', 'w') as file:
+        with open(CONFIG, 'w') as file:
             json.dump(data, file)
     else:
         await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
@@ -94,7 +103,8 @@ async def usemodel(ctx, model: str):
 
 @commands.hybrid_command(description="help")
 async def help(ctx):
-    with open('config.json', 'r') as file:
+    ut.logRequest(ctx)
+    with open(CONFIG, 'r') as file:
         data = json.load(file)
     cmds = data['commands']
     txt = ''
@@ -107,8 +117,13 @@ async def help(ctx):
 
 @commands.hybrid_command(description = 'Change context length')
 async def set_context_length(ctx, mode:str, length:str):
-    with open('config.json', 'r') as file:
+    ut.logRequest(ctx, mode + ' ' + length)
+    with open(CONFIG, 'r') as file:
         data = json.load(file)
+    
+    if not ut.isAdmin(str(ctx.author.id)):
+        ctx.send('You don\'t have the authorization do set context length.')
+        return
 
     if mode == 'normal':
         data['normalModeContextLength'] = length
@@ -122,7 +137,8 @@ async def set_context_length(ctx, mode:str, length:str):
 
 @commands.hybrid_command(description = 'check current model')
 async def check_model(ctx):
-    with open('config.json', 'r') as file:
+    ut.logRequest(ctx)
+    with open(CONFIG, 'r') as file:
         data = json.load(file)
     model = '**' + data['model'] + '**'
     await ctx.send(f'Currently using LLM: {model}')
@@ -168,9 +184,13 @@ async def claudePOST(**kwargs):
     try:
         if msg[0]['role'] == 'assistant':
             msg.pop(0)
+        if msg[len(msg)-1]['role'] == 'user':
+            msg.pop(len(msg)-1)
+
     except IndexError as e:
         pass
     msg.append({"role": "user", "content": kwargs['prompt']})
+    print(msg)
     claudeClient = AsyncAnthropic(api_key=DiscordToken.claude())
     stream = await claudeClient.messages.create(
         model = kwargs['model'],
@@ -207,7 +227,7 @@ async def compileOllamaPost(**kwargs):
 #----------------------------------------------------------------------------------------------------------
 async def getModelStatus():
     try:
-        with open('config.json', 'r') as file:
+        with open(CONFIG, 'r') as file:
             data = json.load(file) 
         return data['model']
     except:
