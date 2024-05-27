@@ -12,6 +12,7 @@ Based on [discord.py](https://github.com/Rapptz/discord.py)
 ```pip install discord.py```  
 ```pip install requests```  
 ```pip install openai```  
+```pip install anthropic```
 
 ## Use
 download the repo and unzip to your prefered location  
