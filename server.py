@@ -13,6 +13,8 @@ class Totomi(commands.Bot):
         self.add_command(cmds.check_model)
         self.add_command(cmds.imgtotomi)
         self.add_command(cmds.newchat)
+        self.add_command(cmds.dalle_totomi)
+        self.add_command(cmds.set_system_prompt)
         self.NEWCHAT = 1
 
     async def stop(self):

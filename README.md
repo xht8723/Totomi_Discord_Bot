@@ -36,13 +36,11 @@ You can change settings in ```config.json``` on the fly.
 ```commands``` this is used to show ```/help``` texts. You can modify them in the description part.
 
 ### todos:  
-DALL-E
+play youtube music
 TTS
 file process
 put api keys in config
-discord threads  
 logs  
-send picture  
 excute commands use natural languages.  
 context for ollama  
 make this a COG  

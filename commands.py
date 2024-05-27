@@ -14,6 +14,7 @@ SQL = 'chat_history.db'
 CONFIG = 'config.json'
 MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
 VISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']
+ART_MODELS = []
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description = 'clear context, start a new chat.')
 async def newchat(ctx):
@@ -141,8 +142,30 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
         await ctx.send(reply)
         ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
         ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
-
-
+#----------------------------------------------------------------------------------------------------------
+@commands.hybrid_command(description = 'Image Generation')
+@app_commands.describe(prompt = 'Describe your image!', style = 'vivid/natural', 
+                       size = 'must be 1024x1024, 1792x1024 or 1024x1792',
+                       quality = 'standard/hd')
+async def dalle_totomi(ctx, prompt: str, style:str = 'vivid', size:str = '1024x1024', quality:str = 'hd'):
+    ut.logRequest(ctx, prompt)
+    openaiClient = AsyncOpenAI(api_key=DiscordToken.openAI())
+    await ctx.defer()
+    try:
+        response = await openaiClient.images.generate(
+            model='dall-e-3',
+            prompt=prompt,
+            style=style,
+            size=size,
+            quality=quality
+        )
+    except Exception as e:
+        await ctx.send(e)
+    reply = ''
+    for each in response.data:
+        reply = reply + each.url + '\n'
+    await ctx.send(reply)
+    return
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description = 'Change AI model.(Require admin)')
 @app_commands.describe(model = "gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
@@ -210,6 +233,22 @@ async def check_model(ctx):
     model = '**' + data['model'] + '**'
     await ctx.send(f'Currently using LLM: {model}')
     await ctx.send('All available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
+#----------------------------------------------------------------------------------------------------------
+@commands.hybrid_command(description = 'Set system prompt.')
+@app_commands.describe(prompt = 'Enter new system prompt')
+async def set_system_prompt(ctx, prompt:str):
+    ut.logRequest(ctx, prompt)
+    if not ut.isAdmin(str(ctx.author.id)):
+        await ctx.send('You don\'t have the authorization to set system prompt')
+        return
+    with open(CONFIG,'r') as file:
+        data = json.load(file)
+    data['systemPrompt'] = prompt
+    await ctx.send(f'Changed system prompt to: {prompt}')
+    with open(CONFIG, 'w') as file:
+        json.dump(data, file, indent = '\t')
+    return
+
 #----------------------------------------------------------------------------------------------------------
 #HELPERS
 #----------------------------------------------------------------------------------------------------------
@@ -324,7 +363,6 @@ async def getModelStatus():
     except:
         print('No config.json found')
         return
-
 #----------------------------------------------------------------------------------------------------------
 async def encode_image(image_path):
     with open(image_path, "rb") as image_file:

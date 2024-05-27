@@ -102,10 +102,14 @@ def initJson():
         'admins':['admin ID'],
         'commands': [
             {'command':'help', 'description':'```/help```\tHelp'},
+            {'command':'newchat', 'description':'```/newchat```\tClear context history, start a new chat.'},
             {'command':'totomi', 'description':'```/totomi <propmt>```\tStart chat with Totomi!'},
-            {'command':'usemodel', 'description':'```/usemodel <model name>```\tchange LLM model.\n\tAvailable models: gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku'},
+            {'command':'imgtotomi', 'description':"```/imgtotomi <prompt> <img>```\tAsk totomi about a picture!\n\tOnly models with vision capability can use this.\n\tVISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']"},
+            {'command':'dalle_totomi', 'description':'```/dalle_totomi <prompt> *<style>* *<size>* *<quality>*```\tGenerate images using DALL-E-3\n\tStars are optional parameters.\n\t<style> must be vivid/natural. default vivid.\n\t<size> must be 1024x1024, 1792x1024 or 1024x1792. default 1024x1024.\n\t<quality> must be standard/hd. default hd'},
+            {'command':'usemodel', 'description':'```/usemodel <model name>```\tChange LLM model.\n\tAvailable models: gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku'},
             {'command':'set_context_length', 'description':'```/set_context_length <mode> <length>```\t\"thread\" mode or \"normal\" mode\n\tSet the context length of your chat.'},
-            {'command':'check_model', 'description':'```/check_model```\tprints current using LLM model plus all available models.'}
+            {'command':'check_model', 'description':'```/check_model```\tPrints current using LLM model plus all available models.'},
+            {'command':'set_system_prompt', 'description':'```/set_system_prompt <prompt>```\tSet system prompt for AI chat. Prompt engineers start your magic!'},
         ]
     }
     with open(CONFIG, 'w') as file:
