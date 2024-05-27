@@ -13,8 +13,13 @@ import os
 SQL = 'chat_history.db'
 CONFIG = 'config.json'
 MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
-VISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
-
+VISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']
+#----------------------------------------------------------------------------------------------------------
+@commands.hybrid_command(description = 'clear context, start a new chat.')
+async def newchat(ctx):
+    ctx.bot.NEWCHAT = 1
+    await ctx.send('Cleared context!')
+    return
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description="start chat!", help = 'say something')
 async def totomi(ctx, *, prompt: str):
@@ -34,7 +39,11 @@ async def totomi(ctx, *, prompt: str):
         guild = str(ctx.guild.id)
 
     prompt = 'From user ' + f'<@{str(ctx.author.id)}>: ' + prompt 
-    context = ut.get_latest_guild_messages(str(ctx.channel.id), guild, normalModeContextLength)
+    
+    if ctx.bot.NEWCHAT == 1:
+        context = []
+    else:
+        context = ut.get_latest_guild_messages(str(ctx.channel.id), guild, normalModeContextLength)
 
     if model == 'ollama':
         try:
@@ -84,7 +93,7 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
     model = data['model']
 
     if model not in VISION_MODELS:
-        await ctx.send('Current AI model does not have vision capability.')
+        await ctx.send(f'Current AI model does not have vision capability.\nVision supported models: {VISION_MODELS}')
         return
 
     if ctx.guild == None:
