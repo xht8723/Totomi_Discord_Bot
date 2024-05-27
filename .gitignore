@@ -8,3 +8,4 @@ history.json
 chat_history.db
 convertSQL.py
 chat_history.csv
+cache

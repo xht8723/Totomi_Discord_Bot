@@ -4,15 +4,19 @@ import requests
 import json
 import DiscordToken #Delete this..
 from discord.ext import commands
+from discord import app_commands
 import utilities as ut
 import discord
+import base64
+import os
 
 SQL = 'chat_history.db'
 CONFIG = 'config.json'
 MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
+VISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
 
 #----------------------------------------------------------------------------------------------------------
-@commands.hybrid_command(description="start chat!")
+@commands.hybrid_command(description="start chat!", help = 'say something')
 async def totomi(ctx, *, prompt: str):
     ut.logRequest(ctx, prompt)
     await ctx.defer()
@@ -45,12 +49,10 @@ async def totomi(ctx, *, prompt: str):
     if model == 'gpt-3.5-turbo' or model == 'gpt-4o' or model == 'gpt-4-turbo':
         try:
             data = await chatGPTPOST(prompt = prompt, system = systemP, 
-                                     model = model, context = context, ctx = ctx)
-            await ctx.send(data.choices[0].message.content)
-            if ctx.guild == None:
-                guild = 'DM'
-            else:
-                guild = str(ctx.guild.id)
+                                     model = model, context = context, ctx = ctx, 
+                                     img = None, attachment = None)
+            reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
+            await ctx.send(reply)
 
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
@@ -60,22 +62,65 @@ async def totomi(ctx, *, prompt: str):
     if model == 'claude-3-opus-20240229' or model == 'claude-3-sonnet-20240229' or model == 'claude-3-haiku-20240307':
         try:
             data = await claudePOST(prompt = prompt, system = systemP, 
-                                     model = model, context = context, ctx = ctx)
+                                     model = model, context = context, ctx = ctx, 
+                                     img = None, attachment = None)
             await ctx.send(data.content[0].text)
-            if ctx.guild == None:
-                guild = 'DM'
-            else:
-                guild = str(ctx.guild.id)
 
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
         except Exception as e:
             await ctx.send(str(e))
-
     return
 #----------------------------------------------------------------------------------------------------------
+@commands.hybrid_command(description = 'ask AI about an image')
+@app_commands.describe(prompt = 'ask something', image = 'drag your image here')
+async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
+    ut.logRequest(ctx, prompt + 'file: ' + image.filename)
 
-@commands.hybrid_command(description="gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
+    with open(CONFIG, 'r') as file:
+        data = json.load(file)
+
+    systemP = data['systemPrompt']
+    model = data['model']
+
+    if model not in VISION_MODELS:
+        await ctx.send('Current AI model does not have vision capability.')
+        return
+
+    if ctx.guild == None:
+        guild = 'DM'
+    else:
+        guild = str(ctx.guild.id)
+
+    prompt = 'From user ' + f'<@{str(ctx.author.id)}>: ' + prompt 
+
+    if ctx.message.attachments:
+        attachment = ctx.message.attachments[0]
+        image = attachment
+
+    cache = 'cache'
+    if not os.path.exists(cache):
+        os.makedirs(cache)
+
+    path = os.path.join(cache, str(image.id))
+    await ctx.defer()
+    await image.save(fp = path)
+    b64img = await encode_image(path)
+    imgDataUrl = f"data:image/jpeg;base64,{b64img}"
+
+    if model == 'gpt-4o' or model == 'gpt-4-turbo':
+        data = await chatGPTPOST(prompt = prompt, system = systemP, 
+                                model = model, context = None, ctx = ctx, 
+                                img = imgDataUrl, attachment = None)
+        reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
+        await ctx.send(reply)
+        ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
+        ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
+
+
+#----------------------------------------------------------------------------------------------------------
+@commands.hybrid_command(description = 'Change AI model.(Require admin)')
+@app_commands.describe(model = "gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
 async def usemodel(ctx, model: str):
     ut.logRequest(ctx, model)
 
@@ -100,7 +145,6 @@ async def usemodel(ctx, model: str):
         await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
     return
 #----------------------------------------------------------------------------------------------------------
-
 @commands.hybrid_command(description="help")
 async def help(ctx):
     ut.logRequest(ctx)
@@ -112,10 +156,9 @@ async def help(ctx):
         txt = txt + each['description'] + '\n\n'
     await ctx.send(txt)
     return
-
 #----------------------------------------------------------------------------------------------------------
-
-@commands.hybrid_command(description = 'Change context length')
+@commands.hybrid_command(description = 'Change context length.(require admin)', help = 'mode = normal or thread. length = a number.')
+@app_commands.describe(mode='Mode of the context (normal/thread)', length='Length of the context')
 async def set_context_length(ctx, mode:str, length:str):
     ut.logRequest(ctx, mode + ' ' + length)
     with open(CONFIG, 'r') as file:
@@ -134,7 +177,6 @@ async def set_context_length(ctx, mode:str, length:str):
         await ctx.send(f'Set Normal mode context length to: {length}')
     return
 #----------------------------------------------------------------------------------------------------------
-
 @commands.hybrid_command(description = 'check current model')
 async def check_model(ctx):
     ut.logRequest(ctx)
@@ -143,7 +185,6 @@ async def check_model(ctx):
     model = '**' + data['model'] + '**'
     await ctx.send(f'Currently using LLM: {model}')
     await ctx.send('All available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
-
 #----------------------------------------------------------------------------------------------------------
 #HELPERS
 #----------------------------------------------------------------------------------------------------------
@@ -151,23 +192,36 @@ async def chatGPTPOST(**kwargs):
     msg = [
             {'role': 'system', 'content': kwargs['system']}
         ]
-    for each in kwargs['context']:
-        if each[0] == str(kwargs['ctx'].me.id):
-            msg.append(
-                {'role': 'assistant', 'content': each[1]}
-            )
-        else:
-            msg.append(
-                {'role': 'user', 'content': each[1]}
-            )
-    msg.append({"role": "user", "content": kwargs['prompt']})
+    if kwargs['img'] == None and kwargs['attachment'] == None:
+        for each in kwargs['context']:
+            if each[0] == str(kwargs['ctx'].me.id):
+                msg.append(
+                    {'role': 'assistant', 'content': each[1]}
+                )
+            else:
+                msg.append(
+                    {'role': 'user', 'content': each[1]}
+                )
+        msg.append({"role": "user", "content": kwargs['prompt']})
+
+    elif kwargs['attachment'] == None:
+        content = []
+        content.append({"type": "text", "text": kwargs['prompt']})
+        content.append({'type': 'image_url', 'image_url': {'url': kwargs['img'], 'detail':'auto'}})
+        msg.append({'role': 'user', 'content': content})
+    else:
+        pass
+
     openaiClient = AsyncOpenAI(api_key=DiscordToken.openAI())
-    stream = await openaiClient.chat.completions.create(
-        model=kwargs['model'],
-        messages = msg,
-        stream=False
-    )
-    return stream
+    try:
+        response = await openaiClient.chat.completions.create(
+            model=kwargs['model'],
+            messages = msg,
+            stream=False
+        )
+    except Exception as e:
+        return e
+    return response
 #----------------------------------------------------------------------------------------------------------
 async def claudePOST(**kwargs):
     msg = []
@@ -190,7 +244,6 @@ async def claudePOST(**kwargs):
     except IndexError as e:
         pass
     msg.append({"role": "user", "content": kwargs['prompt']})
-    print(msg)
     claudeClient = AsyncAnthropic(api_key=DiscordToken.claude())
     stream = await claudeClient.messages.create(
         model = kwargs['model'],
@@ -223,7 +276,6 @@ async def compileOllamaPost(**kwargs):
         ]
     }
     return data
-
 #----------------------------------------------------------------------------------------------------------
 async def getModelStatus():
     try:
@@ -233,3 +285,8 @@ async def getModelStatus():
     except:
         print('No config.json found')
         return
+
+#----------------------------------------------------------------------------------------------------------
+async def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')

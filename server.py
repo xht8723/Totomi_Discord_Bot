@@ -11,6 +11,7 @@ class Totomi(commands.Bot):
         self.add_command(cmds.help)
         self.add_command(cmds.set_context_length)
         self.add_command(cmds.check_model)
+        self.add_command(cmds.imgtotomi)
 
     async def stop(self):
         await self.close()

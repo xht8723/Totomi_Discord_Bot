@@ -36,6 +36,9 @@ You can change settings in ```config.json``` on the fly.
 ```commands``` this is used to show ```/help``` texts. You can modify them in the description part.
 
 ### todos:  
+DALL-E
+TTS
+file process
 put api keys in config
 discord threads  
 logs  
