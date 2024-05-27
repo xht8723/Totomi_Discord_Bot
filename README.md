@@ -24,10 +24,12 @@ or for windows tray version double click ```run_win.pyw```
 
 
 ## Config
-After the first running, ```config.json``` and ```chat_history.db``` will be generated in folder.
-You can change somesettings in config.json on the fly.  
-```systemPrompt```change system prompt for AIs.  
-```model```change the AI service, admin users can change this using discord command as well.  
+After the first running, ```config.json``` and ```chat_history.db``` will be generated in folder.  
+```chat_history.db``` is the database for storing chat history.  
+  
+You can change settings in ```config.json``` on the fly.  
+```systemPrompt``` change system prompt for AIs.  
+```model``` change the AI service, admin users can change this using discord command as well.  
 ```normalModeContextLength``` change the context length for your conversations. 5 means the AI will remember your past 5 conversations. -1 means unlimited.  
 ```threadModeContextLength``` same as above, but used in a discord thread.(thread not yet implemented.)  
 ```admins``` is an array of admin users id. only admins can use discord commands to change certain settings.  
