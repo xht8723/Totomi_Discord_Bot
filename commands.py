@@ -1,4 +1,5 @@
 from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic
 import requests
 import json
 import DiscordToken #Delete this..
@@ -7,7 +8,7 @@ import utilities as ut
 import discord
 
 SQL = 'chat_history.db'
-MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama']
+MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
 
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description="start chat!")
@@ -26,7 +27,6 @@ async def totomi(ctx, *, prompt: str):
 
     prompt = 'From user ' + f'<@{str(ctx.author.id)}>: ' + prompt 
     context = ut.get_latest_guild_messages(str(ctx.channel.id), guild, normalModeContextLength)
-    ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
 
     if model == 'ollama':
         try:
@@ -47,17 +47,40 @@ async def totomi(ctx, *, prompt: str):
                 guild = 'DM'
             else:
                 guild = str(ctx.guild.id)
+
+            ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
+        except Exception as e:
+            await ctx.send(str(e))
+    
+    if model == 'claude-3-opus-20240229' or model == 'claude-3-sonnet-20240229' or model == 'claude-3-haiku-20240307':
+        try:
+            data = await claudePOST(prompt = prompt, system = systemP, 
+                                     model = model, context = context, ctx = ctx)
+            await ctx.send(data.content[0].text)
+            if ctx.guild == None:
+                guild = 'DM'
+            else:
+                guild = str(ctx.guild.id)
+
+            ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
+            ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
         except Exception as e:
             await ctx.send(str(e))
 
     return
 #----------------------------------------------------------------------------------------------------------
 
-@commands.hybrid_command(description="gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama.")
+@commands.hybrid_command(description="gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
 async def usemodel(ctx, model: str):
     with open('config.json','r') as file:
         if model in MODELS:
+            if model == 'claude-3-opus':
+                model = 'claude-3-opus-20240229'
+            if model == 'claude-3-sonnet':
+                model = 'claude-3-sonnet-20240229'
+            if model == 'claude-3-haiku':
+                model = 'claude-3-haiku-20240307'
             data = json.load(file)
             data['model'] = model
             await ctx.send(f'Changed model to {model}')
@@ -122,27 +145,32 @@ async def chatGPTPOST(**kwargs):
     return stream
 #----------------------------------------------------------------------------------------------------------
 async def claudePOST(**kwargs):
-    prompt = ''
-    for x in kwargs['prompt']:
-        prompt = prompt + x + ' '
-
-    data = {
-        'model':kwargs['model'],
-        "stream": False,
-        'system': kwargs['system'],
-        'temperature':0.8,
-        'messages': [
-            {
-                'role':'system',
-                'content':kwargs['system']
-            },
-            {
-                'role':'user',
-                'content':kwargs['prompt']
-            }
-        ]
-    }
-    return data
+    msg = []
+    last_role = None
+    for each in kwargs['context']:
+        current_role = 'assistant' if each[0] == str(kwargs['ctx'].me.id) else 'user'
+        if last_role == current_role:
+            msg = []
+            break
+        msg.append(
+            {'role': current_role, 'content': each[1]}
+        )
+        last_role = current_role
+    try:
+        if msg[0]['role'] == 'assistant':
+            msg.pop(0)
+    except IndexError as e:
+        pass
+    msg.append({"role": "user", "content": kwargs['prompt']})
+    claudeClient = AsyncAnthropic(api_key=DiscordToken.claude())
+    stream = await claudeClient.messages.create(
+        model = kwargs['model'],
+        max_tokens = 4096,
+        system = kwargs['system'],
+        messages = msg,
+        stream = False
+    )
+    return stream
 #----------------------------------------------------------------------------------------------------------
 async def compileOllamaPost(**kwargs):
     prompt = ''
