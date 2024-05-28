@@ -1,10 +1,10 @@
 # TotomiBot 远江bot
 [English](/README.md)  
   
-一个能够使用大型语言模型LLM的Dsicord机器人！（包括chatgpt，claude3或者本地运行的ollama）
+一个能够使用大型语言模型LLM的Dsicord机器人！（包括chatgpt，claude3或者本地运行的ollama） 
+
+  https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/2eb809d8-4af8-4af8-bae2-172bb8a74c24  
   
-![image](https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/8e39753e-286c-4dc3-b6a7-39469dabf905)
-![image](https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/6fad4881-f41a-4d91-bc9b-363385fcb1cc)
 基于[discord.py](https://github.com/Rapptz/discord.py)  
 你需要有自己的llm api  
 
@@ -16,11 +16,10 @@
 ## 使用
 下载这个repo并解压  
 安装上述前置模组  
-替换所有```DiscordToken.totomiT()```代码为你的discord机器人token（有一个替换在```run.py```里, 有一个替换在```run_win.pyw```里）  
-替换所有```DiscordToken.openAI()```代码为你的openAI api. （有一个需替换，在```commands.py```里）  
 运行```python run.py```  
-
 或者双击使用windows版```run_win.pyw```  
+
+首次运行会让你输入discord token等信息，只有token是必填的，其它的可以直接enter跳过（之后可以随时在json文件改，或者直接用terminal命令改。）
 
 ## 设置
 首次运行后，文件夹中将生成 ```config.json``` 和 ```chat_history.db``` 文件。  
