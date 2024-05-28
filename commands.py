@@ -2,7 +2,6 @@ from openai import AsyncOpenAI
 from anthropic import AsyncAnthropic
 import requests
 import json
-import DiscordToken #Delete this..
 from discord.ext import commands
 from discord import app_commands
 import utilities as ut
@@ -15,6 +14,10 @@ CONFIG = 'config.json'
 MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
 VISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']
 ART_MODELS = []
+
+OPENAI_API = ''
+CLAUDE3_API = ''
+
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description = 'clear context, start a new chat.')
 async def newchat(ctx):
@@ -149,7 +152,8 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
                        quality = 'standard/hd')
 async def dalle_totomi(ctx, prompt: str, style:str = 'vivid', size:str = '1024x1024', quality:str = 'hd'):
     ut.logRequest(ctx, prompt)
-    openaiClient = AsyncOpenAI(api_key=DiscordToken.openAI())
+    global OPENAI_API
+    openaiClient = AsyncOpenAI(api_key=OPENAI_API)
     await ctx.defer()
     try:
         response = await openaiClient.images.generate(
@@ -275,8 +279,9 @@ async def chatGPTPOST(**kwargs):
         msg.append({'role': 'user', 'content': content})
     else:
         pass
-
-    openaiClient = AsyncOpenAI(api_key=DiscordToken.openAI())
+    
+    global OPENAI_API
+    openaiClient = AsyncOpenAI(api_key=OPENAI_API)
     try:
         response = await openaiClient.chat.completions.create(
             model=kwargs['model'],
@@ -321,8 +326,9 @@ async def claudePOST(**kwargs):
         msg.append({'role':'user', 'content':content})
     else:
         pass
-
-    claudeClient = AsyncAnthropic(api_key=DiscordToken.claude())
+    
+    global CLAUDE3_API
+    claudeClient = AsyncAnthropic(api_key=CLAUDE3_API)
     stream = await claudeClient.messages.create(
         model = kwargs['model'],
         max_tokens = 4096,

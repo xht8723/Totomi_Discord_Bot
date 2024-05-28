@@ -10,7 +10,6 @@ Based on [discord.py](https://github.com/Rapptz/discord.py)
 
 ## Dependencies
 ```pip install discord.py```  
-```pip install requests```  
 ```pip install openai```  
 ```pip install anthropic```
 
@@ -37,10 +36,11 @@ You can change settings in ```config.json``` on the fly.
 ```commands``` this is used to show ```/help``` texts. You can modify them in the description part.
 
 ### todos:  
-play youtube music
-TTS
-file process
-put api keys in config
+add server side commands  
+play youtube music  
+TTS  
+file process  
+put api keys in config  
 logs  
 excute commands use natural languages.  
 context for ollama  
