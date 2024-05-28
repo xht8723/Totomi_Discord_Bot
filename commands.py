@@ -15,9 +15,6 @@ MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', '
 VISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']
 ART_MODELS = []
 
-OPENAI_API = ''
-CLAUDE3_API = ''
-
 #----------------------------------------------------------------------------------------------------------
 @commands.hybrid_command(description = 'clear context, start a new chat.')
 async def newchat(ctx):
@@ -38,6 +35,10 @@ async def totomi(ctx, *, prompt: str):
     model = data['model']
     normalModeContextLength = data['normalModeContextLength']
     threadModeContextLength = data['threadModeContextLength']
+
+    OPENAI_API = data['openAI-api']
+    CLAUDE3_API = data['claude3-api']
+
     if ctx.guild == None:
         guild = 'DM'
     else:
@@ -54,7 +55,7 @@ async def totomi(ctx, *, prompt: str):
     if model == 'ollama':
         try:
             url = 'http://localhost:11434/api/chat'
-            data = compileOllamaPost(prompt=prompt, system = systemP)
+            data = ollamaPost(prompt=prompt, system = systemP)
             post = requests.post(url, json=data)
             jsondata = post.json()
             await ctx.send(jsondata['message']['content'])
@@ -65,7 +66,7 @@ async def totomi(ctx, *, prompt: str):
         try:
             data = await chatGPTPOST(prompt = prompt, system = systemP, 
                                      model = model, context = context, ctx = ctx, 
-                                     img = None, attachment = None)
+                                     img = None, attachment = None, api = OPENAI_API)
             reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
             await ctx.send(reply)
 
@@ -78,7 +79,7 @@ async def totomi(ctx, *, prompt: str):
         try:
             data = await claudePOST(prompt = prompt, system = systemP, 
                                      model = model, context = context, ctx = ctx, 
-                                     img = None, attachment = None)
+                                     img = None, attachment = None, api = CLAUDE3_API)
             reply = data.content[0].text + '\n\n' + '*token spent: ' + str(data.usage.input_tokens + data.usage.output_tokens) + '*'
             await ctx.send(reply)
 
@@ -102,6 +103,8 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
         fileExtension = 'jpeg'
     systemP = data['systemPrompt']
     model = data['model']
+    OPENAI_API = data['openAI-api']
+    CLAUDE3_API = data['claude3-api']
 
     if model not in VISION_MODELS:
         await ctx.send(f'Current AI model does not have vision capability.\nVision supported models: {VISION_MODELS}')
@@ -131,7 +134,7 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
     if model == 'gpt-4o' or model == 'gpt-4-turbo':
         data = await chatGPTPOST(prompt = prompt, system = systemP, 
                                 model = model, context = None, ctx = ctx, 
-                                img = imgDataUrl, attachment = None, fileExtension = fileExtension)
+                                img = imgDataUrl, attachment = None, fileExtension = fileExtension, api = OPENAI_API)
         reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
         await ctx.send(reply)
         ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
@@ -140,7 +143,7 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
     if model == 'claude-3-opus-20240229' or model == 'claude-3-sonnet-20240229' or model == 'claude-3-haiku-20240307':
         data = await claudePOST(prompt = prompt, system = systemP, 
                                 model = model, context = None, ctx = ctx, 
-                                img = b64img, attachment = None, fileExtension = fileExtension)
+                                img = b64img, attachment = None, fileExtension = fileExtension, api = CLAUDE3_API)
         reply = data.content[0].text + '\n\n' + '*token spent: ' + str(data.usage.input_tokens + data.usage.output_tokens) + '*'
         await ctx.send(reply)
         ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
@@ -152,7 +155,10 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
                        quality = 'standard/hd')
 async def dalle_totomi(ctx, prompt: str, style:str = 'vivid', size:str = '1024x1024', quality:str = 'hd'):
     ut.logRequest(ctx, prompt)
-    global OPENAI_API
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
+
+    OPENAI_API = data['openAI-api']
     openaiClient = AsyncOpenAI(api_key=OPENAI_API)
     await ctx.defer()
     try:
@@ -280,8 +286,7 @@ async def chatGPTPOST(**kwargs):
     else:
         pass
     
-    global OPENAI_API
-    openaiClient = AsyncOpenAI(api_key=OPENAI_API)
+    openaiClient = AsyncOpenAI(api_key=kwargs['api'])
     try:
         response = await openaiClient.chat.completions.create(
             model=kwargs['model'],
@@ -327,8 +332,7 @@ async def claudePOST(**kwargs):
     else:
         pass
     
-    global CLAUDE3_API
-    claudeClient = AsyncAnthropic(api_key=CLAUDE3_API)
+    claudeClient = AsyncAnthropic(api_key=kwargs['api'])
     stream = await claudeClient.messages.create(
         model = kwargs['model'],
         max_tokens = 4096,
@@ -338,7 +342,7 @@ async def claudePOST(**kwargs):
     )
     return stream
 #----------------------------------------------------------------------------------------------------------
-async def compileOllamaPost(**kwargs):
+async def ollamaPost(**kwargs):
     prompt = ''
     for x in kwargs['prompt']:
         prompt = prompt + x + ' '

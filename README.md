@@ -16,18 +16,20 @@ Based on [discord.py](https://github.com/Rapptz/discord.py)
 ## Use
 download the repo and unzip to your prefered location  
 install above dependencies  
-replace all ```DiscordToken.totomiT()``` with your discord bot token. (one in ```run.py```, one in ```run_win.pyw```)  
-replace all ```DiscordToken.openAI()``` with your openAI api key. (one in ```commands.py```)  
 run ```python run.py```  
-  
 or for windows tray version double click ```run_win.pyw```  
-
+  
+uppon first running, prompt will ask you to input discord token, LLM api keys, admin user.  
+only discord token is a must to set the bot up, the others can be omitted.(You can change them on the fly using config.json or terminal commands)
 
 ## Config
-After the first running, ```config.json``` and ```chat_history.db``` will be generated in folder.  
+Uppon the first running, ```config.json``` and ```chat_history.db``` will be generated in folder.  
 ```chat_history.db``` is the database for storing chat history.  
   
 You can change settings in ```config.json``` on the fly.  
+```openAI-api``` set openai api key.  
+```claude3-api``` set claude3 api key.  
+```discord-token``` set discord token.  
 ```systemPrompt``` change system prompt for AIs.  
 ```model``` change the AI service, admin users can change this using discord command as well.  
 ```normalModeContextLength``` change the context length for your conversations. 5 means the AI will remember your past 5 conversations. -1 means unlimited.  
@@ -36,13 +38,12 @@ You can change settings in ```config.json``` on the fly.
 ```commands``` this is used to show ```/help``` texts. You can modify them in the description part.
 
 ### todos:  
-add server side commands  
+graceful keyboardintrrupt  
 play youtube music  
 TTS  
 file process  
 put api keys in config  
 logs  
-excute commands use natural languages.  
 context for ollama  
 make this a COG  
 
@@ -50,3 +51,5 @@ make this a COG
 
 ### knwon bugs:
 windows tray cannot close gracefully.
+keyboardinterrupt exception.
+newchat doesnt work.
