@@ -4,8 +4,8 @@
 Have the power of LLMs in your discord bot!  
 Supported LLMs: chatgpt, claude3, ollama  
   
-![image](https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/8e39753e-286c-4dc3-b6a7-39469dabf905)
-![image](https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/6fad4881-f41a-4d91-bc9b-363385fcb1cc)
+https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/2eb809d8-4af8-4af8-bae2-172bb8a74c24  
+
 Based on [discord.py](https://github.com/Rapptz/discord.py)
 
 ## Dependencies
