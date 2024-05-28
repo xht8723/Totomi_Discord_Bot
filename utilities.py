@@ -7,13 +7,46 @@ import inspect
 SQL = 'chat_history.db'
 CONFIG = 'config.json'
 
+def add_admin(*userIds):
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
+
+    for each in userIds:
+        data['admins'].append(each)
+
+    with open(CONFIG, 'w') as f:
+        json.dump(data, f, indent = '\t')
+    print(f'added user {userIds} as admins')
+    return
+
+def set_openai_key(key):
+    print('set openai key')
+    return
+
+def set_claude_key(key):
+    print('set claude 3 key')
+    return
+
+def set_sys_prompt(prompt):
+    print('set system prompt')
+    return
+
+def set_model(model):
+    print('set model')
+    return
+
+def set_context_len(len):
+    print('set context len')
+    return
+
 def getAPIs():
     with open(CONFIG, 'r') as file:
         data = json.load(file)
     return {
         'openAI':data['openAI-api'],
         'claude3':data['claude3-api'],
-        'token':data['discord-token']
+        'token':data['discord-token'],
+        'admin':data['admins']
     }
 
 def logRequest(ctx, requests=''):
