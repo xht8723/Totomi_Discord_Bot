@@ -107,7 +107,7 @@ def command_listener():
 def help():
     print('------terminal commands------')
     for key in imported_functions:
-        print(key + 'n')
+        print(key)
     print('--------usage: <invoke command_name args>--------')
     return
 
