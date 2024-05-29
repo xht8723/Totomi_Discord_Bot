@@ -32,9 +32,6 @@ class Totomi(commands.Bot):
         self.add_command(cmds.set_system_prompt)
         self.add_command(youPlay.play)
         self.NEWCHAT = 1
-        if not ut.checkJson:
-            print('init json...')
-            ut.initJson(kwargs['token'], kwargs['claude3'], kwargs['openAi'], kwargs['admin'])
 
     async def stop(self):
         await self.close()
@@ -66,6 +63,7 @@ if not ut.checkJson():
     claude3 = input('Enter claude3 api key\n(can leave it blank and change it later in json file): ')
     admin = input('Enter the admin user\'s discord ID: ')
     client = Totomi(command_prefix='_', intents=intents, help_command=None, openAi = openAi, claude3 = claude3, token = token, admin = admin)
+    ut.initJson(token, claude3, openAi, admin)
 else:
     client = Totomi(command_prefix='_', intents=intents, help_command=None)
 
