@@ -12,8 +12,10 @@ Based on [discord.py](https://github.com/Rapptz/discord.py)
 ```pip install discord.py```  
 ```pip install openai```  
 ```pip install anthropic```  
-```pip install ffmpeg```  
+```pip install yt_dlp```  
 ```pip install aioconsole```  
+
+have ffmpeg in your path to use youtube play music cog.
 
 ## Use
 download the repo and unzip to your prefered location  
