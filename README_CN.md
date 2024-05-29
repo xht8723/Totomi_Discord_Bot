@@ -9,7 +9,7 @@
 你需要有自己的llm api  
 
 ## Dependencies 需求python模组
-```pip install discord.py```  
+```pip install discord.py[voice]```  
 ```pip install requests```  
 ```pip install openai```  
 

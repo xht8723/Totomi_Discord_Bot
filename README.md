@@ -12,6 +12,8 @@ Based on [discord.py](https://github.com/Rapptz/discord.py)
 ```pip install discord.py```  
 ```pip install openai```  
 ```pip install anthropic```
+```pip install ffmpeg```
+```pip install youtube_dl```
 
 ## Use
 download the repo and unzip to your prefered location  
@@ -42,7 +44,6 @@ graceful keyboardintrrupt
 play youtube music  
 TTS  
 file process  
-put api keys in config  
 logs  
 context for ollama  
 make this a COG  

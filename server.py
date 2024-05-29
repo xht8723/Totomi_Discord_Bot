@@ -3,6 +3,7 @@ import asyncio
 from discord.ext import commands
 import commands as cmds
 import utilities as ut
+import youPlay
 import discord
 import threading
 from utilities import add_admin, set_claude_key, set_openai_key, set_sys_prompt, set_model, set_context_len
@@ -29,6 +30,7 @@ class Totomi(commands.Bot):
         self.add_command(cmds.newchat)
         self.add_command(cmds.dalle_totomi)
         self.add_command(cmds.set_system_prompt)
+        self.add_command(youPlay.play)
         self.NEWCHAT = 1
         if not ut.checkJson:
             print('init json...')
@@ -63,9 +65,9 @@ if not ut.checkJson():
     openAi = input('Enter openAI api key\n(can leave it blank and change it later in json file): ')
     claude3 = input('Enter claude3 api key\n(can leave it blank and change it later in json file): ')
     admin = input('Enter the admin user\'s discord ID: ')
-    client = Totomi(command_prefix='-', intents=intents, help_command=None, openAi = openAi, claude3 = claude3, token = token, admin = admin)
+    client = Totomi(command_prefix='_', intents=intents, help_command=None, openAi = openAi, claude3 = claude3, token = token, admin = admin)
 else:
-    client = Totomi(command_prefix='-', intents=intents, help_command=None)
+    client = Totomi(command_prefix='_', intents=intents, help_command=None)
 
 keys = ut.getAPIs()
 async def startServer():
@@ -117,5 +119,5 @@ if __name__ == '__main__':
         listener.start()
     except:
         raise KeyboardInterrupt
-    asyncio.run(startServer())
+    client.run(keys['token'])
     listener.join()
