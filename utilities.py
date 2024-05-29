@@ -3,10 +3,18 @@ from datetime import datetime
 import os
 import json
 import inspect
+#-------------------------------------------------------------
+# utilities.py
+# This module contains miscellaneous support functions, terminal commands, init setup files.
+#-------------------------------------------------------------
 
-SQL = 'chat_history.db'
-CONFIG = 'config.json'
+SQL = 'chat_history.db'#SQL data base location.
+CONFIG = 'config.json'#config.json location.
 
+#-------------------------------------------------------------
+# add_admin
+# This is a terminal command for adding amin user id.
+#-------------------------------------------------------------
 def add_admin(*userIds):
     with open(CONFIG, 'r') as f:
         data = json.load(f)
@@ -19,26 +27,50 @@ def add_admin(*userIds):
     print(f'added user {userIds} as admins')
     return
 
+#-------------------------------------------------------------
+# set_openai_key
+# This is a terminal command for setting openai api key
+#-------------------------------------------------------------
 def set_openai_key(key):
     print('set openai key')
     return
 
+#-------------------------------------------------------------
+# set_claude_key
+# This is a terminal command for setting claude3 api key
+#-------------------------------------------------------------
 def set_claude_key(key):
     print('set claude 3 key')
     return
 
+#-------------------------------------------------------------
+# set_sys_prompt
+# This is a terminal command for setting system prompt for AI services
+#-------------------------------------------------------------
 def set_sys_prompt(prompt):
     print('set system prompt')
     return
 
+#-------------------------------------------------------------
+# set_model
+# This is a terminal command for setting AI models
+#-------------------------------------------------------------
 def set_model(model):
     print('set model')
     return
 
+#-------------------------------------------------------------
+# set_context_len
+# This is a terminal command for setting AI context length
+#-------------------------------------------------------------
 def set_context_len(len):
     print('set context len')
     return
 
+#-------------------------------------------------------------
+# getAPIs
+# This is a support function to get api keys and discord token.
+#-------------------------------------------------------------
 def getAPIs():
     with open(CONFIG, 'r') as file:
         data = json.load(file)
@@ -49,6 +81,10 @@ def getAPIs():
         'admin':data['admins']
     }
 
+#-------------------------------------------------------------
+# logRequest
+# This is a support function to log.
+#-------------------------------------------------------------
 def logRequest(ctx, requests=''):
     stack = inspect.stack()
     caller = stack[1]
@@ -57,17 +93,33 @@ def logRequest(ctx, requests=''):
     print(rq)
     return rq
 
+#-------------------------------------------------------------
+# isAdmin
+# This is a support function to check if a user is admin.
+#-------------------------------------------------------------
 def isAdmin(userId):
     with open(CONFIG,'r') as file:
         data = json.load(file)
     return userId in data['admins']
 
+#-------------------------------------------------------------
+# checkSQL
+# This is a support function to check if SQL file exists.
+#-------------------------------------------------------------
 def checkSQL():
     return os.path.isfile(SQL)
 
+#-------------------------------------------------------------
+# checkJson
+# This is a support function to check if config file exists.
+#-------------------------------------------------------------
 def checkJson():
     return os.path.isfile(CONFIG)
 
+#-------------------------------------------------------------
+# save_guild_message
+# This is a support function to save AI chat history.
+#-------------------------------------------------------------
 def save_guild_message(channel_id, guild_id, user_id, text):
     sql = sqlite3.connect(SQL)
     c = sql.cursor()
@@ -77,6 +129,10 @@ def save_guild_message(channel_id, guild_id, user_id, text):
     sql.commit()
     return 1
 
+#-------------------------------------------------------------
+# get_latest_guild_messages
+# This is a support function to get AI chat history.
+#-------------------------------------------------------------
 def get_latest_guild_messages(channel_id, guild_id, context_len):
     sql = sqlite3.connect(SQL)
     c = sql.cursor()
@@ -96,6 +152,10 @@ def get_latest_guild_messages(channel_id, guild_id, context_len):
     sql.close()
     return result
 
+#-------------------------------------------------------------
+# initSQL
+# This is a support function to generate SQL databse.
+#-------------------------------------------------------------
 def initSQL():
     sql = sqlite3.connect(SQL)
     c = sql.cursor()
@@ -131,10 +191,18 @@ CREATE TABLE channel (
 );''')
     return sql.close()
 
-
+#-------------------------------------------------------------
+# SYSTEMPROMPT
+# This is default system prompt.
+#-------------------------------------------------------------
 SYSTEMPROMPT = '''你是一个discord bot，你的名字叫远江, 你是一个女生，说话语气可爱，你会回答用户们的问题并且和用户们聊天。
 每次输入的开头中'<@numbers>'即是用户的名字id，每次回复都必须严格按照'<@numbers>'的格式提及用户。
 除非用户特别说明，应以用户使用的语言回复。'''
+
+#-------------------------------------------------------------
+# initJson
+# This is a support function to generate config.json file.
+#-------------------------------------------------------------
 def initJson(token, claude3, openai, admin):
     data = {
         'openAI-api':openai,
@@ -155,6 +223,9 @@ def initJson(token, claude3, openai, admin):
             {'command':'set_context_length', 'description':'```/set_context_length <mode> <length>```\t\"thread\" mode or \"normal\" mode\n\tSet the context length of your chat.'},
             {'command':'check_model', 'description':'```/check_model```\tPrints current using LLM model plus all available models.'},
             {'command':'set_system_prompt', 'description':'```/set_system_prompt <prompt>```\tSet system prompt for AI chat. Prompt engineers start your magic!'},
+            {'command':'play', 'description':'```/play <url>```\tPlay youtube videos.\n\tSupport playlists and song ques.'},
+            {'command':'skip', 'description':'```/skip```\tSkip current song.'},
+            {'command':'leave', 'description':'```/leave```\tAsk bot to leave voice channel.'}
         ]
     }
     with open(CONFIG, 'w') as file:

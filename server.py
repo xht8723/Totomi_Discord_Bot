@@ -6,6 +6,12 @@ from youPlay_cog import YTDL
 import discord
 from utilities import add_admin, set_claude_key, set_openai_key, set_sys_prompt, set_model, set_context_len
 
+#-------------------------------------------------------------
+# server
+# This is the main module for running the bot server.
+#-------------------------------------------------------------
+
+# these are terminal commands.
 imported_functions = {
     'add_admin': add_admin,
     'set_claude_key':set_claude_key,
@@ -15,69 +21,10 @@ imported_functions = {
     'set_context_len':set_context_len
 }
 
-class Totomi(commands.Bot):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.add_command(cmds.totomi)
-        self.add_command(cmds.usemodel)
-        self.add_command(cmds.help)
-        self.add_command(cmds.set_context_length)
-        self.add_command(cmds.check_model)
-        self.add_command(cmds.imgtotomi)
-        self.add_command(cmds.newchat)
-        self.add_command(cmds.dalle_totomi)
-        self.add_command(cmds.set_system_prompt)
-        # ytdl = YTDL(self)
-        # cogCmds = ytdl.get_commands()
-        # for each in cogCmds:
-        #     self.add_command(each)
-        self.NEWCHAT = 1
-
-    async def setup_hook(self) -> None:
-        self.commandListener = self.loop.create_task(command_listener())
-
-    async def stop(self):
-        await self.close()
-    
-    async def on_ready(self):
-        await self.add_cog(YTDL(self))
-        if not ut.checkSQL():
-            print('init SQL....')
-            ut.initSQL()
-
-        model = await cmds.getModelStatus()
-        await self.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
-
-        try:
-            await self.tree.sync()
-            print("Commands synced successfully.")
-        except Exception as e:
-            print(f"Failed to sync commands: {e}")
-
-        print(f'Logged in as {self.user} (ID: {self.user.id})')
-        print('\nThank you for using totomi bot!\nsome configs are in config.json file.\n')
-        print('------input <invoke help> to see available terminal commands')
-
-intents = discord.Intents.default()
-intents.message_content = True
-intents.guilds = True
-if not ut.checkJson():
-    token = input('Enter discord token: ')
-    openAi = input('Enter openAI api key\n(can leave it blank and change it later in json file): ')
-    claude3 = input('Enter claude3 api key\n(can leave it blank and change it later in json file): ')
-    admin = input('Enter the admin user\'s discord ID: ')
-    client = Totomi(command_prefix='_', intents=intents, help_command=None, openAi = openAi, claude3 = claude3, token = token, admin = admin)
-    ut.initJson(token, claude3, openAi, admin)
-else:
-    client = Totomi(command_prefix='_', intents=intents, help_command=None)
-
-keys = ut.getAPIs()
-async def startServer():
-    await client.start(keys['token'])
-
-async def close_bot():
-    await client.close()
-
+#-------------------------------------------------------------
+# command_listener
+# This is a coroutine that will run along with the server to listen to terminal commands.
+#-------------------------------------------------------------
 async def command_listener():
     while True:
         try:
@@ -104,7 +51,11 @@ async def command_listener():
 
         except Exception as e:
             print(e)
-            
+
+#-------------------------------------------------------------
+# help
+# This is a terminal commands to show help text for terminal commands.
+#-------------------------------------------------------------
 def help():
     print('------terminal commands------')
     for key in imported_functions:
@@ -112,5 +63,76 @@ def help():
     print('--------usage: <invoke command_name args>--------')
     return
 
+#-------------------------------------------------------------
+# Totomi
+# This is the main class of the bot server.
+#-------------------------------------------------------------
+class Totomi(commands.Bot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_command(cmds.totomi)
+        self.add_command(cmds.usemodel)
+        self.add_command(cmds.help)
+        self.add_command(cmds.set_context_length)
+        self.add_command(cmds.check_model)
+        self.add_command(cmds.imgtotomi)
+        self.add_command(cmds.newchat)
+        self.add_command(cmds.dalle_totomi)
+        self.add_command(cmds.set_system_prompt)
+        self.NEWCHAT = 1
+
+    #-------------------------------------------------------------
+    # setup_hook
+    # This will get called after on_ready.
+    # Used to create coroutine for listening to terminal commands.
+    #-------------------------------------------------------------
+    async def setup_hook(self) -> None:
+        self.commandListener = self.loop.create_task(command_listener())
+    
+    #-------------------------------------------------------------
+    # on_ready
+    # This will get called when the bot is ready.
+    # Used to setup SQL databse, setting up discord presence, sync discord slash commands.
+    #-------------------------------------------------------------
+    async def on_ready(self):
+        await self.add_cog(YTDL(self))
+        if not ut.checkSQL():
+            print('init SQL....')
+            ut.initSQL()
+
+        model = await cmds.getModelStatus()
+        await self.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
+
+        try:
+            await self.tree.sync()
+            print("Commands synced successfully.")
+        except Exception as e:
+            print(f"Failed to sync commands: {e}")
+
+        print(f'Logged in as {self.user} (ID: {self.user.id})')
+        print('\nThank you for using totomi bot!\nsome configs are in config.json file.\n')
+        print('------input <invoke help> to see available terminal commands')
+
+
+#-------------------------------------------------------------
+# Server preparations
+#-------------------------------------------------------------
+intents = discord.Intents.default()
+intents.message_content = True
+intents.guilds = True
+if not ut.checkJson():
+    token = input('Enter discord token: ')
+    openAi = input('Enter openAI api key\n(can leave it blank and change it later in json file): ')
+    claude3 = input('Enter claude3 api key\n(can leave it blank and change it later in json file): ')
+    admin = input('Enter the admin user\'s discord ID: ')
+    client = Totomi(command_prefix='_', intents=intents, help_command=None, openAi = openAi, claude3 = claude3, token = token, admin = admin)
+    ut.initJson(token, claude3, openAi, admin)
+else:
+    client = Totomi(command_prefix='_', intents=intents, help_command=None)
+keys = ut.getAPIs()
+
+#-------------------------------------------------------------
+# python main to start server.
+#-------------------------------------------------------------
 if __name__ == '__main__':
     client.run(keys['token'])

@@ -4,12 +4,12 @@ import discord
 import utilities as ut
 import asyncio
 import yt_dlp
+#-------------------------------------------------------------
+# youPlay_cog
+# This is a cog module for playing youtube music.
+#-------------------------------------------------------------
 
-
-FFMPEG_OPTIONS = {
-        'before_options':
-        '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -probesize 200M',
-    }
+# yt_dlp options for playing music.
 YDL_OPT = {
     'format': 'bestaudio/best',
     'noplaylist': True,
@@ -22,11 +22,21 @@ YDL_OPT = {
     }],
     }
 
+#-------------------------------------------------------------
+# class YTDL
+# This is the main class for the cog.
+# playlist saves song queue.
+#-------------------------------------------------------------
 class YTDL(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.playlist = []
 
+    #-------------------------------------------------------------
+    # play
+    # This is a discord command for playing music.
+    # Accepting a youtube video url and using yt_dlp to extract playlist and song information.
+    #-------------------------------------------------------------
     @commands.hybrid_command(description='Play youtube music!')
     async def play(self, ctx, url: str):
         ut.logRequest(ctx, url)
@@ -44,6 +54,10 @@ class YTDL(commands.Cog):
         if len(self.playlist) >=1 and ctx.voice_client == None:
              await self.play_next(ctx)
 
+    #-------------------------------------------------------------
+    # play_next
+    # This is a support function to actually starting to play music from the playlist.
+    #-------------------------------------------------------------
     async def play_next(self, ctx):
         try:
             url = self.playlist.pop(0)
@@ -68,9 +82,17 @@ class YTDL(commands.Cog):
         )
         voice_client.play(audio, after=lambda e: self.bot.loop.create_task(self.continue_play(ctx)))
 
+    #-------------------------------------------------------------
+    # continue_play
+    # This is a support function to recurrently play the next song.
+    #-------------------------------------------------------------
     async def continue_play(self, ctx):
         await self.play_next(ctx)
 
+    #-------------------------------------------------------------
+    # leave
+    # This is a discord command for asking bot to leave the voice channel.
+    #-------------------------------------------------------------
     @commands.hybrid_command(description = 'leave voice channel')
     async def leave(self, ctx):
         ut.logRequest(ctx)
@@ -82,6 +104,10 @@ class YTDL(commands.Cog):
         await ctx.send('Totomi Out.')
         return
 
+    #-------------------------------------------------------------
+    # skip
+    # This is a discord command for skipping current playing song.
+    #-------------------------------------------------------------
     @commands.hybrid_command(description = 'skip current song')
     async def skip(self, ctx):
         ut.logRequest(ctx)
@@ -96,6 +122,10 @@ class YTDL(commands.Cog):
             await ctx.send('im not in a voice channel')
         return
 
+    #-------------------------------------------------------------
+    # playLocal
+    # This is a discord command for playing a local music file. This is for testing.
+    #-------------------------------------------------------------
     @commands.command(description = 'Play test music')
     async def playLocal(self, ctx, url:str):
         channel = ctx.author.voice.channel

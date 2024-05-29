@@ -9,7 +9,7 @@ https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/2eb809d8-4af8-4af8
 Based on [discord.py](https://github.com/Rapptz/discord.py)
 
 ## Dependencies
-```pip install discord.py```  
+```pip install discord.py[voice]```  
 ```pip install openai```  
 ```pip install anthropic```  
 ```pip install yt_dlp```  
@@ -20,8 +20,7 @@ have ffmpeg in your path to use youtube play music cog.
 ## Use
 download the repo and unzip to your prefered location  
 install above dependencies  
-run ```python run.py```  
-or for windows tray version double click ```run_win.pyw```  
+run ```python server.py```  
   
 uppon first running, prompt will ask you to input discord token, LLM api keys, admin user.  
 only discord token is a must to set the bot up, the others can be omitted.(You can change them on the fly using config.json or terminal commands)
@@ -42,8 +41,8 @@ You can change settings in ```config.json``` on the fly.
 ```commands``` this is used to show ```/help``` texts. You can modify them in the description part.
 
 ### todos:  
+implementing terming commands.  
 TTS  
-file process  
 logs  
 context for ollama  
 make this a COG  
@@ -51,6 +50,4 @@ make this a COG
 ### Ultimate goal: Chat with gpt-4o in voice channel!
 
 ### knwon bugs:
-windows tray cannot close gracefully.
-keyboardinterrupt exception.
 newchat doesnt work.

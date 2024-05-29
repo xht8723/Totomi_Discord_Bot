@@ -9,20 +9,36 @@ import discord
 import base64
 import os
 
-SQL = 'chat_history.db'
-CONFIG = 'config.json'
+#-------------------------------------------------------------
+# commands
+# This is a module for every main discord commands.
+#-------------------------------------------------------------
+
+SQL = 'chat_history.db'#SQL data base location.
+CONFIG = 'config.json'#config.json location.
+
+# Usable AI models.
 MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
+# Usable AI models that supports vision(to read a picture.)
 VISION_MODELS = ['gpt-4o', 'gpt-4-turbo', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']
+# Usable AI models that generate images.
 ART_MODELS = []
 
-#----------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------
+# newchat
+# This is a discord command to clear current chat context.
+#-------------------------------------------------------------
 @commands.hybrid_command(description = 'clear context, start a new chat.')
 async def newchat(ctx):
     ut.logRequest(ctx)
     ctx.bot.NEWCHAT = 1
     await ctx.send('Cleared context!')
     return
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# totomi
+# This is a discord command to chat with AI
+#-------------------------------------------------------------
 @commands.hybrid_command(description="start chat!", help = 'say something')
 async def totomi(ctx, *, prompt: str):
     ut.logRequest(ctx, prompt)
@@ -88,7 +104,11 @@ async def totomi(ctx, *, prompt: str):
         except Exception as e:
             await ctx.send(str(e))
     return
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# imgtotomi
+# This is a discord command to ask vision AI about an image.
+#-------------------------------------------------------------
 @commands.hybrid_command(description = 'ask AI about an image')
 @app_commands.describe(prompt = 'ask something', image = 'drag your image here')
 async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
@@ -148,7 +168,11 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
         await ctx.send(reply)
         ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
         ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# dalle_totomi
+# This is a discord command to use openAI's DALL-E-3 to generate images.
+#-------------------------------------------------------------
 @commands.hybrid_command(description = 'Image Generation')
 @app_commands.describe(prompt = 'Describe your image!', style = 'vivid/natural', 
                        size = 'must be 1024x1024, 1792x1024 or 1024x1792',
@@ -176,7 +200,11 @@ async def dalle_totomi(ctx, prompt: str, style:str = 'vivid', size:str = '1024x1
         reply = reply + each.url + '\n'
     await ctx.send(reply)
     return
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# usemodel
+# This is a discord command to change AI models.
+#-------------------------------------------------------------
 @commands.hybrid_command(description = 'Change AI model.(Require admin)')
 @app_commands.describe(model = "gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
 async def usemodel(ctx, model: str):
@@ -202,7 +230,11 @@ async def usemodel(ctx, model: str):
     else:
         await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
     return
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# help
+# This is a discord command to show help text. It will use the descriptions in config.json
+#-------------------------------------------------------------
 @commands.hybrid_command(description="help")
 async def help(ctx):
     ut.logRequest(ctx)
@@ -214,7 +246,10 @@ async def help(ctx):
         txt = txt + each['description'] + '\n\n'
     await ctx.send(txt)
     return
-#----------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------
+# set_context_length
+# This is a discord command to set context length for AI chat.
+#-------------------------------------------------------------
 @commands.hybrid_command(description = 'Change context length.(require admin)', help = 'mode = normal or thread. length = a number.')
 @app_commands.describe(mode='Mode of the context (normal/thread)', length='Length of the context')
 async def set_context_length(ctx, mode:str, length:str):
@@ -234,7 +269,11 @@ async def set_context_length(ctx, mode:str, length:str):
         data['threadModeContextLength'] = length
         await ctx.send(f'Set Normal mode context length to: {length}')
     return
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# check_model
+# This is a discord command to show currently using AI model.
+#-------------------------------------------------------------
 @commands.hybrid_command(description = 'check current model')
 async def check_model(ctx):
     ut.logRequest(ctx)
@@ -243,7 +282,11 @@ async def check_model(ctx):
     model = '**' + data['model'] + '**'
     await ctx.send(f'Currently using LLM: {model}')
     await ctx.send('All available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# set_system_prompt
+# This is a discord command to set system prompt for AI chat.
+#-------------------------------------------------------------
 @commands.hybrid_command(description = 'Set system prompt.')
 @app_commands.describe(prompt = 'Enter new system prompt')
 async def set_system_prompt(ctx, prompt:str):
@@ -259,9 +302,13 @@ async def set_system_prompt(ctx, prompt:str):
         json.dump(data, file, indent = '\t')
     return
 
-#----------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------
 #HELPERS
-#----------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------
+#-------------------------------------------------------------
+# chatGPTPOST
+# This is a helper function to compile POST message to chatpgts.
+#-------------------------------------------------------------
 async def chatGPTPOST(**kwargs):
     msg = [
             {'role': 'system', 'content': kwargs['system']}
@@ -296,7 +343,11 @@ async def chatGPTPOST(**kwargs):
     except Exception as e:
         return e
     return response
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# claudePOST
+# This is a helper function to compile POST message to claude3s.
+#-------------------------------------------------------------
 async def claudePOST(**kwargs):
     msg = []
     if kwargs['img'] == None and kwargs['attachment'] == None:
@@ -341,7 +392,11 @@ async def claudePOST(**kwargs):
         stream = False
     )
     return stream
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# ollamaPost
+# This is a helper function to compile POST message to ollama.
+#-------------------------------------------------------------
 async def ollamaPost(**kwargs):
     prompt = ''
     for x in kwargs['prompt']:
@@ -364,7 +419,11 @@ async def ollamaPost(**kwargs):
         ]
     }
     return data
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# getModelStatus
+# This is a helper function that returns currently using AI model.
+#-------------------------------------------------------------
 async def getModelStatus():
     try:
         with open(CONFIG, 'r') as file:
@@ -373,7 +432,11 @@ async def getModelStatus():
     except:
         print('No config.json found')
         return
-#----------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------
+# encode_image
+# This is a helper function for encoding images in base64 so that vision AIs could read them.
+#-------------------------------------------------------------
 async def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
