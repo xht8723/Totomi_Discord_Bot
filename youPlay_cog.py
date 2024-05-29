@@ -69,10 +69,14 @@ class YTDL(commands.Cog):
             voice_client = await channel.connect()
         else:
             voice_client = ctx.voice_client
-        with yt_dlp.YoutubeDL(YDL_OPT) as ydl:
-            info = ydl.extract_info(url, download=False)
-            title = info['title']
-            stream_url = info['url']
+        try:
+            with yt_dlp.YoutubeDL(YDL_OPT) as ydl:
+                info = ydl.extract_info(url, download=False)
+                title = info['title']
+                stream_url = info['url']
+        except yt_dlp.DownloadError as e:
+            print(e)
+            await self.continue_play(ctx)
 
         await ctx.send(f':musical_note: Playing: {title}')
         audio = discord.FFmpegPCMAudio(
