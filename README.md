@@ -41,7 +41,8 @@ You can change settings in ```config.json``` on the fly.
 ```commands``` this is used to show ```/help``` texts. You can modify them in the description part.
 
 ### todos:  
-implementing terming commands.  
+make models and chat histories DM based and guild based.
+implementing terminal commands.  
 TTS  
 logs  
 context for ollama  
