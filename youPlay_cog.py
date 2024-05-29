@@ -115,7 +115,7 @@ class YTDL(commands.Cog):
     @commands.hybrid_command(description = 'skip current song')
     async def skip(self, ctx):
         ut.logRequest(ctx)
-        if not ctx.voice_client == None and ctx.voice_client.is_playing():
+        if not ctx.voice_client == None:
             ctx.voice_client.stop()
             if len(self.playlist) == 1:
                 await ctx.send('Playlist finished.')
