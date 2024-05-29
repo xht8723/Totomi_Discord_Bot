@@ -11,9 +11,9 @@ Based on [discord.py](https://github.com/Rapptz/discord.py)
 ## Dependencies
 ```pip install discord.py```  
 ```pip install openai```  
-```pip install anthropic```
-```pip install ffmpeg```
-```pip install youtube_dl```
+```pip install anthropic```  
+```pip install ffmpeg```  
+```pip install aioconsole```  
 
 ## Use
 download the repo and unzip to your prefered location  
@@ -40,8 +40,6 @@ You can change settings in ```config.json``` on the fly.
 ```commands``` this is used to show ```/help``` texts. You can modify them in the description part.
 
 ### todos:  
-graceful keyboardintrrupt  
-play youtube music  
 TTS  
 file process  
 logs  

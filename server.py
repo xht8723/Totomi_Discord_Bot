@@ -1,12 +1,11 @@
-import sys
-import asyncio
+import aioconsole
 from discord.ext import commands
 import commands as cmds
 import utilities as ut
-import youPlay
+from youPlay_cog import YTDL
 import discord
-import threading
 from utilities import add_admin, set_claude_key, set_openai_key, set_sys_prompt, set_model, set_context_len
+
 imported_functions = {
     'add_admin': add_admin,
     'set_claude_key':set_claude_key,
@@ -15,8 +14,6 @@ imported_functions = {
     'set_model':set_model,
     'set_context_len':set_context_len
 }
-
-stop_event = threading.Event()
 
 class Totomi(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -30,13 +27,20 @@ class Totomi(commands.Bot):
         self.add_command(cmds.newchat)
         self.add_command(cmds.dalle_totomi)
         self.add_command(cmds.set_system_prompt)
-        self.add_command(youPlay.play)
+        # ytdl = YTDL(self)
+        # cogCmds = ytdl.get_commands()
+        # for each in cogCmds:
+        #     self.add_command(each)
         self.NEWCHAT = 1
+
+    async def setup_hook(self) -> None:
+        self.commandListener = self.loop.create_task(command_listener())
 
     async def stop(self):
         await self.close()
     
     async def on_ready(self):
+        await self.add_cog(YTDL(self))
         if not ut.checkSQL():
             print('init SQL....')
             ut.initSQL()
@@ -74,10 +78,10 @@ async def startServer():
 async def close_bot():
     await client.close()
 
-def command_listener():
-    while not stop_event.is_set():
+async def command_listener():
+    while True:
         try:
-            IOin = input('>> ')
+            IOin = await aioconsole.ainput('>> ')
             inputToken = IOin.split()
             if not inputToken:
                 continue
@@ -85,8 +89,6 @@ def command_listener():
             args = inputToken[1:]
 
             if cmd == 'exit':
-                stop_event.set()
-                raise KeyboardInterrupt
                 break
             elif cmd == 'invoke' and len(args) >= 1:
                 func = args[0]
@@ -101,8 +103,7 @@ def command_listener():
                 print('syntax error')
 
         except Exception as e:
-            print('closing..')
-            raise KeyboardInterrupt
+            print(e)
             
 def help():
     print('------terminal commands------')
@@ -112,10 +113,4 @@ def help():
     return
 
 if __name__ == '__main__':
-    try:
-        listener = threading.Thread(target=command_listener)
-        listener.start()
-    except:
-        raise KeyboardInterrupt
     client.run(keys['token'])
-    listener.join()
