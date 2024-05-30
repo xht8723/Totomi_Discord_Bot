@@ -65,7 +65,7 @@ class YTDL(commands.Cog):
             await ctx.voice_client.disconnect()
             return
         channel = ctx.author.voice.channel
-        if channel and not ctx.voice_client:
+        if channel is not None and ctx.voice_client is None:
             voice_client = await channel.connect()
         else:
             voice_client = ctx.voice_client
@@ -133,7 +133,7 @@ class YTDL(commands.Cog):
     @commands.command(description = 'Play test music')
     async def playLocal(self, ctx, url:str):
         channel = ctx.author.voice.channel
-        file = 'I_Will_Touch_the_Sky.flac'
+        file = 'tts.mp3'
         if not channel == None:
             voiceClient = await channel.connect()
             audio = discord.FFmpegPCMAudio(source=file)

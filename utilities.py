@@ -23,7 +23,7 @@ def add_admin(*userIds):
         data['admins'].append(each)
 
     with open(CONFIG, 'w') as f:
-        json.dump(data, f, indent = '\t')
+        json.dump(data, f, indent = '\t', ensure_ascii=False)
     print(f'added user {userIds} as admins')
     return
 
@@ -32,7 +32,14 @@ def add_admin(*userIds):
 # This is a terminal command for setting openai api key
 #-------------------------------------------------------------
 def set_openai_key(key):
-    print('set openai key')
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
+
+    data['openAI-api'] = key
+
+    with open(CONFIG, 'w') as f:
+        json.dump(data, f, indent = '\t', ensure_ascii=False)
+    print(f'Changed key.')
     return
 
 #-------------------------------------------------------------
@@ -40,7 +47,14 @@ def set_openai_key(key):
 # This is a terminal command for setting claude3 api key
 #-------------------------------------------------------------
 def set_claude_key(key):
-    print('set claude 3 key')
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
+        
+    data['claude3-api'] = key
+
+    with open(CONFIG, 'w') as f:
+        json.dump(data, f, indent = '\t', ensure_ascii=False)
+    print(f'Changed key.')
     return
 
 #-------------------------------------------------------------
@@ -48,7 +62,14 @@ def set_claude_key(key):
 # This is a terminal command for setting system prompt for AI services
 #-------------------------------------------------------------
 def set_sys_prompt(prompt):
-    print('set system prompt')
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
+
+    data['systemPrompt'] = prompt
+
+    with open(CONFIG, 'w') as f:
+        json.dump(data, f, indent = '\t')
+    print(f'Changed system prompt to: {prompt}', ensure_ascii=False)
     return
 
 #-------------------------------------------------------------
@@ -56,7 +77,14 @@ def set_sys_prompt(prompt):
 # This is a terminal command for setting AI models
 #-------------------------------------------------------------
 def set_model(model):
-    print('set model')
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
+
+    data['model'] = model
+
+    with open(CONFIG, 'w') as f:
+        json.dump(data, f, indent = '\t', ensure_ascii=False)
+    print(f'Changed model to: {model}')
     return
 
 #-------------------------------------------------------------
@@ -64,7 +92,14 @@ def set_model(model):
 # This is a terminal command for setting AI context length
 #-------------------------------------------------------------
 def set_context_len(len):
-    print('set context len')
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
+    
+    data['normalModeContextLength'] = len
+
+    with open(CONFIG, 'w') as f:
+        json.dump(data, f, indent = '\t', ensure_ascii=False)
+    print(f'Changed Context Length to: {len}')
     return
 
 #-------------------------------------------------------------
@@ -229,4 +264,4 @@ def initJson(token, claude3, openai, admin):
         ]
     }
     with open(CONFIG, 'w') as file:
-        json.dump(data, file, indent = '\t')
+        json.dump(data, file, indent = '\t', ensure_ascii=False)

@@ -42,8 +42,7 @@ You can change settings in ```config.json``` on the fly.
 
 ### todos:  
 make models and chat histories DM based and guild based.
-implementing terminal commands.  
-TTS  
+STT
 logs  
 context for ollama  
 make this a COG  

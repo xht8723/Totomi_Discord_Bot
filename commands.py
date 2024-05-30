@@ -1,4 +1,5 @@
 from openai import AsyncOpenAI
+from openai import OpenAI
 from anthropic import AsyncAnthropic
 import requests
 import json
@@ -8,6 +9,7 @@ import utilities as ut
 import discord
 import base64
 import os
+import asyncio
 
 #-------------------------------------------------------------
 # commands
@@ -40,7 +42,7 @@ async def newchat(ctx):
 # This is a discord command to chat with AI
 #-------------------------------------------------------------
 @commands.hybrid_command(description="start chat!", help = 'say something')
-async def totomi(ctx, *, prompt: str):
+async def totomi(ctx, prompt: str):
     ut.logRequest(ctx, prompt)
     await ctx.defer()
 
@@ -84,6 +86,7 @@ async def totomi(ctx, *, prompt: str):
                                      model = model, context = context, ctx = ctx, 
                                      img = None, attachment = None, api = OPENAI_API)
             reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
+            reply_raw = data.choices[0].message.content
             await ctx.send(reply)
 
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
@@ -97,13 +100,14 @@ async def totomi(ctx, *, prompt: str):
                                      model = model, context = context, ctx = ctx, 
                                      img = None, attachment = None, api = CLAUDE3_API)
             reply = data.content[0].text + '\n\n' + '*token spent: ' + str(data.usage.input_tokens + data.usage.output_tokens) + '*'
+            reply_raw = data.content[0].text
             await ctx.send(reply)
 
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
         except Exception as e:
             await ctx.send(str(e))
-    return
+    return reply_raw
 
 #-------------------------------------------------------------
 # imgtotomi
@@ -202,6 +206,50 @@ async def dalle_totomi(ctx, prompt: str, style:str = 'vivid', size:str = '1024x1
     return
 
 #-------------------------------------------------------------
+# ttstotomi
+# This is a discord command to make AI speak to you.
+#-------------------------------------------------------------
+@commands.hybrid_command(description = 'Simple text to speech.')
+@app_commands.describe(prompt = 'Chat', voice = 'alloy/echo/fable/onyx/nova/shimmer', model = 'tts-1/tts-1-hd')
+async def tts(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1'):
+    ut.logRequest(ctx, prompt + ',' + voice + ',' + model)
+    if ctx.author.voice.channel == None:
+        ctx.send('You have to be in a voice channel.')
+        return
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
+    OPENAI_API = data['openAI-api']
+    openaiClient = OpenAI(api_key=OPENAI_API)
+    try:
+        with openaiClient.with_streaming_response.audio.speech.create(model=model,voice=voice,input=prompt) as response:
+            response.stream_to_file('tts.mp3')
+    except Exception as e:
+        await ctx.send(e)
+    audio = discord.FFmpegPCMAudio(
+            source='tts.mp3'
+        )
+    channel = ctx.author.voice.channel
+    if channel is not None and ctx.voice_client is None:
+        voice_client = await channel.connect()
+    else:
+        voice_client = ctx.voice_client
+    voice_client.play(audio, after=lambda _:asyncio.run_coroutine_threadsafe(
+            coro = voice_client.disconnect(),
+            loop = voice_client.loop
+        ).result())
+    ctx.send('TTS done.')
+    
+#-------------------------------------------------------------
+# ttstotomi
+# This is a discord command to voice chat with AI
+#-------------------------------------------------------------
+@commands.hybrid_command(description = 'AI speaks to you, literally.')
+@app_commands.describe(prompt = 'Chat', voice = 'alloy/echo/fable/onyx/nova/shimmer', model = 'tts-1/tts-1-hd')
+async def ttstotomi(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1'):
+    reply = await ctx.invoke(totomi, prompt)
+    await ctx.invoke(tts, prompt=reply, voice = voice, model = model)
+    return
+#-------------------------------------------------------------
 # usemodel
 # This is a discord command to change AI models.
 #-------------------------------------------------------------
@@ -226,7 +274,7 @@ async def usemodel(ctx, model: str):
         await ctx.send(f'Changed model to {model}')
         await ctx.bot.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
         with open(CONFIG, 'w') as file:
-            json.dump(data, file, indent = '\t')
+            json.dump(data, file, indent = '\t', ensure_ascii=False)
     else:
         await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
     return
@@ -299,7 +347,7 @@ async def set_system_prompt(ctx, prompt:str):
     data['systemPrompt'] = prompt
     await ctx.send(f'Changed system prompt to: {prompt}')
     with open(CONFIG, 'w') as file:
-        json.dump(data, file, indent = '\t')
+        json.dump(data, file, indent = '\t', ensure_ascii=False)
     return
 
 #-------------------------------------------------------------
