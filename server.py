@@ -127,10 +127,10 @@ if not ut.checkJson():
     openAi = input('Enter openAI api key\n(can leave it blank and change it later in json file): ')
     claude3 = input('Enter claude3 api key\n(can leave it blank and change it later in json file): ')
     admin = input('Enter the admin user\'s discord ID: ')
-    client = Totomi(command_prefix='_', intents=intents, help_command=None, openAi = openAi, claude3 = claude3, token = token, admin = admin)
+    client = Totomi(command_prefix='!', intents=intents, help_command=None, openAi = openAi, claude3 = claude3, token = token, admin = admin)
     ut.initJson(token, claude3, openAi, admin)
 else:
-    client = Totomi(command_prefix='_', intents=intents, help_command=None)
+    client = Totomi(command_prefix='!', intents=intents, help_command=None)
 keys = ut.getAPIs()
 
 #-------------------------------------------------------------
