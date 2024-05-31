@@ -222,11 +222,11 @@ async def tts(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1'):
     openaiClient = OpenAI(api_key=OPENAI_API)
     try:
         with openaiClient.with_streaming_response.audio.speech.create(model=model,voice=voice,input=prompt) as response:
-            response.stream_to_file('tts.mp3')
+            response.stream_to_file('cache/tts.mp3')
     except Exception as e:
         await ctx.send(e)
     audio = discord.FFmpegPCMAudio(
-            source='tts.mp3'
+            source='cache/tts.mp3'
         )
     channel = ctx.author.voice.channel
     if channel is not None and ctx.voice_client is None:
