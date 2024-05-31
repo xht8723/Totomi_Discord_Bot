@@ -43,11 +43,8 @@ You can change settings in ```config.json``` on the fly.
 ### todos:  
 make models and chat histories DM based and guild based.
 STT
-logs  
 context for ollama  
 make this a COG  
-
-### Ultimate goal: Chat with gpt-4o in voice channel!
 
 ### knwon bugs:
 newchat doesnt work.

@@ -4,6 +4,8 @@ import discord
 import utilities as ut
 import asyncio
 import yt_dlp
+import logging
+logger = logging.getLogger('discord')
 #-------------------------------------------------------------
 # youPlay_cog
 # This is a cog module for playing youtube music.
@@ -61,7 +63,8 @@ class YTDL(commands.Cog):
     async def play_next(self, ctx):
         try:
             url = self.playlist.pop(0)
-        except IndexError:
+        except IndexError as e:
+            logger.info(e)
             await ctx.voice_client.disconnect()
             return
         channel = ctx.author.voice.channel
@@ -75,7 +78,7 @@ class YTDL(commands.Cog):
                 title = info['title']
                 stream_url = info['url']
         except yt_dlp.DownloadError as e:
-            print(e)
+            logger.error(e)
             await self.continue_play(ctx)
 
         await ctx.send(f':musical_note: Playing: {title}')

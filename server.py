@@ -1,9 +1,11 @@
+import logging.handlers
 import aioconsole
 from discord.ext import commands
 import commands as cmds
 import utilities as ut
 from youPlay_cog import YTDL
 import discord
+import logging
 from utilities import add_admin, set_claude_key, set_openai_key, set_sys_prompt, set_model, set_context_len
 
 #-------------------------------------------------------------
@@ -20,6 +22,15 @@ imported_functions = {
     'set_model':set_model,
     'set_context_len':set_context_len
 }
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='discord.log',encoding='utf-8')
+dt_fmt = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logging.getLogger('discord.http').setLevel(logging.INFO)
 
 #-------------------------------------------------------------
 # command_listener
@@ -50,7 +61,7 @@ async def command_listener():
                 print('syntax error')
 
         except Exception as e:
-            print(e)
+            logging.error(e)
 
 #-------------------------------------------------------------
 # help
@@ -109,6 +120,7 @@ class Totomi(commands.Bot):
             await self.tree.sync()
             print("Commands synced successfully.")
         except Exception as e:
+            logging.error(e)
             print(f"Failed to sync commands: {e}")
 
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -137,4 +149,4 @@ keys = ut.getAPIs()
 # python main to start server.
 #-------------------------------------------------------------
 if __name__ == '__main__':
-    client.run(keys['token'])
+    client.run(keys['token'], log_handler=None)

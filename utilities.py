@@ -3,6 +3,8 @@ from datetime import datetime
 import os
 import json
 import inspect
+import logging
+logger = logging.getLogger('discord')
 #-------------------------------------------------------------
 # utilities.py
 # This module contains miscellaneous support functions, terminal commands, init setup files.
@@ -124,8 +126,8 @@ def logRequest(ctx, requests=''):
     stack = inspect.stack()
     caller = stack[1]
     caller_name = caller.function
-    rq = f'[{datetime.now().strftime("%Y-%m-%dT%H:%M:%S")}] from user {str(ctx.author.display_name)}:{str(ctx.author.id)} in channel {str(ctx.channel.id)}; func: {caller_name}; content: {requests}'
-    print(rq)
+    rq = f'from user {str(ctx.author.display_name)}:{str(ctx.author.id)} in channel {str(ctx.channel.id)}; func: {caller_name}; content: {requests}'
+    logger.info(rq)
     return rq
 
 #-------------------------------------------------------------

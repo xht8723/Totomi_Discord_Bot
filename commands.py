@@ -10,7 +10,8 @@ import discord
 import base64
 import os
 import asyncio
-
+import logging
+logger = logging.getLogger('discord')
 #-------------------------------------------------------------
 # commands
 # This is a module for every main discord commands.
@@ -78,6 +79,7 @@ async def totomi(ctx, prompt: str):
             jsondata = post.json()
             await ctx.send(jsondata['message']['content'])
         except Exception as e:
+            logger.error(e)
             await ctx.send(str(e))
 
     if model == 'gpt-3.5-turbo' or model == 'gpt-4o' or model == 'gpt-4-turbo':
@@ -92,6 +94,7 @@ async def totomi(ctx, prompt: str):
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
         except Exception as e:
+            logger.error(e)
             await ctx.send(str(e))
     
     if model == 'claude-3-opus-20240229' or model == 'claude-3-sonnet-20240229' or model == 'claude-3-haiku-20240307':
@@ -106,6 +109,7 @@ async def totomi(ctx, prompt: str):
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
         except Exception as e:
+            logger.error(e)
             await ctx.send(str(e))
     return reply_raw
 
@@ -198,6 +202,7 @@ async def dalle_totomi(ctx, prompt: str, style:str = 'vivid', size:str = '1024x1
             quality=quality
         )
     except Exception as e:
+        logger.error(e)
         await ctx.send(e)
     reply = ''
     for each in response.data:
@@ -224,6 +229,7 @@ async def tts(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1'):
         with openaiClient.with_streaming_response.audio.speech.create(model=model,voice=voice,input=prompt) as response:
             response.stream_to_file('cache/tts.mp3')
     except Exception as e:
+        logger.error(e)
         await ctx.send(e)
     audio = discord.FFmpegPCMAudio(
             source='cache/tts.mp3'
@@ -389,6 +395,7 @@ async def chatGPTPOST(**kwargs):
             stream=False
         )
     except Exception as e:
+        logger.error(e)
         return e
     return response
 
@@ -416,6 +423,7 @@ async def claudePOST(**kwargs):
                 msg.pop(len(msg)-1)
 
         except IndexError as e:
+            logger.warning(e)
             pass
         msg.append({"role": "user", "content": kwargs['prompt']})
 
@@ -478,6 +486,7 @@ async def getModelStatus():
             data = json.load(file) 
         return data['model']
     except:
+        logger.error('No config.json found')
         print('No config.json found')
         return
 
