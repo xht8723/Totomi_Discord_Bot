@@ -254,7 +254,7 @@ async def tts(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1'):
     except discord.errors.ClientException as e:
         logger.warn(e)
         await ctx.send('I am already speaking.')
-    ctx.send('TTS done.')
+    await ctx.send('TTS done.')
     
 #-------------------------------------------------------------
 # ttstotomi
