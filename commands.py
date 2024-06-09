@@ -34,7 +34,7 @@ ART_MODELS = []
 @commands.hybrid_command(description = 'clear context, start a new chat.')
 async def newchat(ctx):
     ut.logRequest(ctx)
-    ctx.bot.NEWCHAT = 1
+    await ut.newChat(str(ctx.channel.id))
     await ctx.send('Cleared context!')
     return
 
@@ -50,12 +50,11 @@ async def totomi(ctx, prompt: str):
     with open(CONFIG, 'r') as file:
         data = json.load(file)
 
-    ut.create_default_channel_settings(str(ctx.channel.id))
-    channelInfo = ut.get_channel_model_prompt(str(ctx.channel.id))
+    await ut.create_default_channel_settings(str(ctx.channel.id))
+    channelInfo = await ut.get_channel_model_prompt(str(ctx.channel.id))
     systemP = channelInfo[1]
     model = channelInfo[0]
-    normalModeContextLength = channelInfo[2]
-
+    normalModeContextLength = int(channelInfo[2])
     OPENAI_API = data['openAI-api']
     CLAUDE3_API = data['claude3-api']
 
@@ -66,19 +65,20 @@ async def totomi(ctx, prompt: str):
 
     prompt = 'From user ' + f'<@{str(ctx.author.id)}>: ' + prompt 
 
-    if ctx.bot.NEWCHAT == 1:
+    if normalModeContextLength == 0:
         context = []
-        ctx.bot.NEWCHAT = 0
     else:
-        context = ut.get_latest_guild_messages(str(ctx.channel.id), guild, normalModeContextLength)
+        context = await ut.get_latest_guild_messages(str(ctx.channel.id), guild, normalModeContextLength)
 
     if model == 'ollama':
         try:
             url = 'http://localhost:11434/api/chat'
-            data = ollamaPost(prompt=prompt, system = systemP)
+            data = ollamaPost(prompt=prompt, system = systemP, context = context)
             post = requests.post(url, json=data)
             jsondata = post.json()
             await ctx.send(jsondata['message']['content'])
+            await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
+            await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), jsondata['message']['content'])
         except Exception as e:
             logger.error(e)
             await ctx.send(str(e))
@@ -92,8 +92,8 @@ async def totomi(ctx, prompt: str):
             reply_raw = data.choices[0].message.content
             await ctx.send(reply)
 
-            ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
-            ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
+            await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
+            await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
         except Exception as e:
             logger.error(e)
             await ctx.send(str(e))
@@ -107,8 +107,8 @@ async def totomi(ctx, prompt: str):
             reply_raw = data.content[0].text
             await ctx.send(reply)
 
-            ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
-            ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
+            await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
+            await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
         except Exception as e:
             logger.error(e)
             await ctx.send(str(e))
@@ -131,8 +131,8 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
     if fileExtension == 'jpg':
         fileExtension = 'jpeg'
 
-    ut.create_default_channel_settings(str(ctx.channel.id))
-    channelInfo = ut.get_channel_model_prompt(str(ctx.channel.id))
+    await ut.create_default_channel_settings(str(ctx.channel.id))
+    channelInfo = await ut.get_channel_model_prompt(str(ctx.channel.id))
     systemP = channelInfo[1]
     model = channelInfo[0]
     OPENAI_API = data['openAI-api']
@@ -169,8 +169,8 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
                                 img = imgDataUrl, attachment = None, fileExtension = fileExtension, api = OPENAI_API)
         reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
         await ctx.send(reply)
-        ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
-        ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
+        await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
+        await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
 
     if model == 'claude-3-opus-20240229' or model == 'claude-3-sonnet-20240229' or model == 'claude-3-haiku-20240307':
         data = await claudePOST(prompt = prompt, system = systemP, 
@@ -178,8 +178,8 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
                                 img = b64img, attachment = None, fileExtension = fileExtension, api = CLAUDE3_API)
         reply = data.content[0].text + '\n\n' + '*token spent: ' + str(data.usage.input_tokens + data.usage.output_tokens) + '*'
         await ctx.send(reply)
-        ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
-        ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
+        await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
+        await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
 
 #-------------------------------------------------------------
 # dalle_totomi
@@ -267,7 +267,7 @@ async def ttstotomi(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1')
 @app_commands.describe(model = "gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
 async def usemodel(ctx, model: str):
     ut.logRequest(ctx, model)
-    ut.create_default_channel_settings(str(ctx.channel.id))
+    await ut.create_default_channel_settings(str(ctx.channel.id))
 
     if not ut.isAdmin(str(ctx.author.id)):
         await ctx.send('You don\'t have the authorization to change AI models.')
@@ -279,7 +279,7 @@ async def usemodel(ctx, model: str):
             model = 'claude-3-sonnet-20240229'
         if model == 'claude-3-haiku':
             model = 'claude-3-haiku-20240307'
-        ut.change_channel_model(str(ctx.channel.id), model)
+        await ut.change_channel_model(str(ctx.channel.id), model)
         await ctx.send(f'Changed model to {model}')
     else:
         await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
@@ -308,12 +308,12 @@ async def help(ctx):
 @app_commands.describe(length='Length of the context')
 async def set_context_length(ctx, length:str):
     ut.logRequest(ctx, length)
-    ut.create_default_channel_settings(str(ctx.channel.id))
+    await ut.create_default_channel_settings(str(ctx.channel.id))
     if not ut.isAdmin(str(ctx.author.id)):
         ctx.send('You don\'t have the authorization do set context length.')
         return
     
-    ut.change_channel_context_len(str(ctx.channel.id), length)
+    await ut.change_channel_context_len(str(ctx.channel.id), length)
     await ctx.send(f'Set Normal mode context length to: {length}')
 
     return
@@ -325,8 +325,8 @@ async def set_context_length(ctx, length:str):
 @commands.hybrid_command(description = 'check current model')
 async def check_model(ctx):
     ut.logRequest(ctx)
-    ut.create_default_channel_settings(str(ctx.channel.id))
-    data = ut.get_channel_model_prompt(str(ctx.channel.id))
+    await ut.create_default_channel_settings(str(ctx.channel.id))
+    data = await ut.get_channel_model_prompt(str(ctx.channel.id))
 
     model = '**' + data[0] + '**'
     prompt = '**' + data[1] + '**'
@@ -343,8 +343,8 @@ async def set_system_prompt(ctx, prompt:str):
     if not ut.isAdmin(str(ctx.author.id)):
         await ctx.send('You don\'t have the authorization to set system prompt')
         return
-    ut.create_default_channel_settings(str(ctx.channel.id))
-    ut.change_channel_prompt(str(ctx.channel.id), prompt)
+    await ut.create_default_channel_settings(str(ctx.channel.id))
+    await ut.change_channel_prompt(str(ctx.channel.id), prompt)
     await ctx.send(f'Changed system prompt to: {prompt}')
     return
 
@@ -446,9 +446,27 @@ async def claudePOST(**kwargs):
 # This is a helper function to compile POST message to ollama.
 #-------------------------------------------------------------
 async def ollamaPost(**kwargs):
-    prompt = ''
-    for x in kwargs['prompt']:
-        prompt = prompt + x + ' '
+    msg = []
+    last_role = None
+    for each in kwargs['context']:
+        current_role = 'assistant' if each[0] == str(kwargs['ctx'].me.id) else 'user'
+        if last_role == current_role:
+            msg = []
+            break
+        msg.append(
+            {'role': current_role, 'content': each[1]}
+        )
+        last_role = current_role
+    try:
+        if msg[0]['role'] == 'assistant':
+            msg.pop(0)
+        if msg[len(msg)-1]['role'] == 'user':
+            msg.pop(len(msg)-1)
+
+    except IndexError as e:
+        logger.warning(e)
+        pass
+    msg.append({"role": "user", "content": kwargs['prompt']})
 
     data = {
         'model':'llama3',
@@ -462,7 +480,7 @@ async def ollamaPost(**kwargs):
             },
             {
                 'role':'user',
-                'content':kwargs['prompt']
+                'content':msg
             }
         ]
     }

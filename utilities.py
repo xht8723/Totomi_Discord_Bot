@@ -161,26 +161,53 @@ def checkJson():
     return os.path.isfile(CONFIG)
 
 #-------------------------------------------------------------
+# newChat
+# This is a support function for clearing chat history.
+#-------------------------------------------------------------
+async def newChat(channel_id):
+    sql = sqlite3.connect(SQL)
+    c = sql.cursor()
+    context_num = 0
+    c.execute('UPDATE message SET context_num = ? WHERE channel_id = ?', (context_num, channel_id))
+    sql.commit()
+    return sql.close()
+
+#-------------------------------------------------------------
 # save_guild_message
 # This is a support function to save AI chat history.
 #-------------------------------------------------------------
-def save_guild_message(channel_id, guild_id, user_id, text):
+async def save_guild_message(channel_id, guild_id, user_id, text):
     sql = sqlite3.connect(SQL)
     c = sql.cursor()
+    c.execute('SELECT context_num FROM message WHERE channel_id = ? ORDER BY created_at DESC', (channel_id,))
+    context_num = c.fetchone()
+    if context_num is None:
+        context_num = 1
+    else:
+        context_num = context_num[0] + 1
     created_at = datetime.now().isoformat()
-    c.execute('INSERT INTO message (channel_id, guild_id, user_id, text, created_at) VALUES (?, ?, ?, ?, ?)',
-              (channel_id, guild_id, user_id, text, created_at))
+    c.execute('INSERT INTO message (channel_id, guild_id, user_id, text, created_at, context_num) VALUES (?, ?, ?, ?, ?, ?)',
+              (channel_id, guild_id, user_id, text, created_at, context_num))
     sql.commit()
     sql.close()
-    return 1
+    return 1   
 
 #-------------------------------------------------------------
 # get_latest_guild_messages
 # This is a support function to get AI chat history.
 #-------------------------------------------------------------
-def get_latest_guild_messages(channel_id, guild_id, context_len):
+async def get_latest_guild_messages(channel_id, guild_id, context_len):
     sql = sqlite3.connect(SQL)
+    if context_len == 0:
+        return []
     c = sql.cursor()
+    c.execute('SELECT context_num FROM message WHERE channel_id = ? ORDER BY created_at DESC', (channel_id,))
+    context_num = c.fetchone()
+    if context_num is None:
+        return []
+    context_num = context_num[0]
+    if context_num < context_len and context_len != -1:
+        context_len = context_num
     query = '''
     SELECT user_id, text, created_at 
     FROM message 
@@ -201,7 +228,7 @@ def get_latest_guild_messages(channel_id, guild_id, context_len):
 # change_channel_model
 # This is a support function to change the AI model for a channel
 #-------------------------------------------------------------
-def change_channel_model(channel_id, model):
+async def change_channel_model(channel_id, model):
     if model in MODELS:
         sql = sqlite3.connect(SQL)
         c = sql.cursor()
@@ -219,7 +246,7 @@ def change_channel_model(channel_id, model):
 # change_channel_prompt
 # This is a support function to change the prompt for a channel
 #-------------------------------------------------------------
-def change_channel_prompt(channel_id, prompt):
+async def change_channel_prompt(channel_id, prompt):
     sql = sqlite3.connect(SQL)
     c = sql.cursor()
     c.execute('''
@@ -235,7 +262,7 @@ def change_channel_prompt(channel_id, prompt):
 # change_channel_context_len
 # This is a support function to change context length for a channel
 #-------------------------------------------------------------
-def change_channel_context_len(channel_id, len):
+async def change_channel_context_len(channel_id, len):
     sql = sqlite3.connect(SQL)
     c = sql.cursor()
     c.execute('''
@@ -251,7 +278,7 @@ def change_channel_context_len(channel_id, len):
 # get_channel_model_prompt
 # This is a support function to get prompt and model information for a channel
 #-------------------------------------------------------------
-def get_channel_model_prompt(channel_id):
+async def get_channel_model_prompt(channel_id):
     sql = sqlite3.connect(SQL)
     c = sql.cursor()
     c.execute('''
@@ -267,9 +294,11 @@ def get_channel_model_prompt(channel_id):
 # get_channel_model_prrompt
 # This is a support function to get prompt and model information for a channel
 #-------------------------------------------------------------
-def create_default_channel_settings(channel_id):
+async def create_default_channel_settings(channel_id):
     sql = sqlite3.connect(SQL)
     c = sql.cursor()
+    with open(CONFIG, 'r') as f:
+        data = json.load(f)
 
     # Check if the guild already exists in the guild_settings table
     c.execute('''
@@ -284,7 +313,8 @@ def create_default_channel_settings(channel_id):
         c.execute('''
             INSERT INTO channel_settings (channel_id, chat_model, prompt, context_len)
             VALUES (?, ?, ?, ?);
-        ''', (channel_id, 'claude-3-sonnet-20240229', SYSTEMPROMPT, 5))
+        ''', (channel_id, data['default_model'],
+               data['default_system_prompt'], data['default_normalModeContextLength']))
         sql.commit()
         logger.info(f"Default settings inserted for channel {channel_id}")
     else:
@@ -319,6 +349,7 @@ CREATE TABLE channel (
     user_id TEXT,
     text TEXT,
     created_at TEXT,
+    context_num INT,
     FOREIGN KEY (channel_id) REFERENCES channel(id),
     FOREIGN KEY (guild_id) REFERENCES guild(id)
 );''')
