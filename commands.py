@@ -50,8 +50,8 @@ async def totomi(ctx, prompt: str):
     with open(CONFIG, 'r') as file:
         data = json.load(file)
 
-    ut.create_default_channel_settings(ctx.channel.id)
-    channelInfo = ut.get_channel_model_prompt(ctx.channel.id)
+    ut.create_default_channel_settings(str(ctx.channel.id))
+    channelInfo = ut.get_channel_model_prompt(str(ctx.channel.id))
     systemP = channelInfo[1]
     model = channelInfo[0]
     normalModeContextLength = channelInfo[2]
@@ -131,8 +131,8 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
     if fileExtension == 'jpg':
         fileExtension = 'jpeg'
 
-    ut.create_default_channel_settings(ctx.channel.id)
-    channelInfo = ut.get_channel_model_prompt(ctx.channel.id)
+    ut.create_default_channel_settings(str(ctx.channel.id))
+    channelInfo = ut.get_channel_model_prompt(str(ctx.channel.id))
     systemP = channelInfo[1]
     model = channelInfo[0]
     OPENAI_API = data['openAI-api']
@@ -267,7 +267,7 @@ async def ttstotomi(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1')
 @app_commands.describe(model = "gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
 async def usemodel(ctx, model: str):
     ut.logRequest(ctx, model)
-    ut.create_default_channel_settings(ctx.channel.id)
+    ut.create_default_channel_settings(str(ctx.channel.id))
 
     if not ut.isAdmin(str(ctx.author.id)):
         await ctx.send('You don\'t have the authorization to change AI models.')
@@ -279,9 +279,8 @@ async def usemodel(ctx, model: str):
             model = 'claude-3-sonnet-20240229'
         if model == 'claude-3-haiku':
             model = 'claude-3-haiku-20240307'
-        ut.change_channel_model(ctx.channel.id, model)
+        ut.change_channel_model(str(ctx.channel.id), model)
         await ctx.send(f'Changed model to {model}')
-        await ctx.bot.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
     else:
         await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
     return
@@ -309,12 +308,12 @@ async def help(ctx):
 @app_commands.describe(length='Length of the context')
 async def set_context_length(ctx, length:str):
     ut.logRequest(ctx, length)
-    ut.create_default_channel_settings(ctx.channel.id)
+    ut.create_default_channel_settings(str(ctx.channel.id))
     if not ut.isAdmin(str(ctx.author.id)):
         ctx.send('You don\'t have the authorization do set context length.')
         return
     
-    ut.change_channel_context_len(ctx.channel.id, length)
+    ut.change_channel_context_len(str(ctx.channel.id), length)
     await ctx.send(f'Set Normal mode context length to: {length}')
 
     return
@@ -326,13 +325,12 @@ async def set_context_length(ctx, length:str):
 @commands.hybrid_command(description = 'check current model')
 async def check_model(ctx):
     ut.logRequest(ctx)
-    ut.create_default_channel_settings(ctx.channel.id)
-    data = ut.get_channel_model_prompt(ctx.channel.id)
+    ut.create_default_channel_settings(str(ctx.channel.id))
+    data = ut.get_channel_model_prompt(str(ctx.channel.id))
 
     model = '**' + data[0] + '**'
     prompt = '**' + data[1] + '**'
-    await ctx.send(f'Currently using LLM: {model}, System prompt: {prompt}')
-    await ctx.send('All available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
+    await ctx.send(f'Currently using LLM: {model}\n\n System prompt: {prompt}\n\nAll available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
 
 #-------------------------------------------------------------
 # set_system_prompt
@@ -345,8 +343,8 @@ async def set_system_prompt(ctx, prompt:str):
     if not ut.isAdmin(str(ctx.author.id)):
         await ctx.send('You don\'t have the authorization to set system prompt')
         return
-    ut.create_default_channel_settings(ctx.channel.id)
-    ut.change_channel_prompt(ctx.channel.id, prompt)
+    ut.create_default_channel_settings(str(ctx.channel.id))
+    ut.change_channel_prompt(str(ctx.channel.id), prompt)
     await ctx.send(f'Changed system prompt to: {prompt}')
     return
 

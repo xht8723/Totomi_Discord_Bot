@@ -3,7 +3,6 @@ from datetime import datetime
 import os
 import json
 import inspect
-import commands
 import logging
 logger = logging.getLogger('discord')
 #-------------------------------------------------------------
@@ -13,15 +12,13 @@ logger = logging.getLogger('discord')
 
 SQL = 'chat_history.db'#SQL data base location.
 CONFIG = 'config.json'#config.json location.
-MODELS = commands.MODELS
+MODELS = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo', 'ollama', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
 
 #-------------------------------------------------------------
 # SYSTEMPROMPT
 # This is default system prompt.
 #-------------------------------------------------------------
-SYSTEMPROMPT = '''你是一个discord bot，你的名字叫远江, 你是一个女生，说话语气可爱，你会回答用户们的问题并且和用户们聊天。
-每次输入的开头中'<@numbers>'即是用户的名字id，每次回复都必须严格按照'<@numbers>'的格式提及用户。
-除非用户特别说明，应以用户使用的语言回复。'''
+SYSTEMPROMPT = '你是一个discord bot，你的名字叫远江, 你是一个女生，说话语气可爱，你会回答用户们的问题并且和用户们聊天。每次输入的开头中"<@numbers>"即是用户的名字id，每次回复都必须严格按照"<@numbers>"的格式提及用户。除非用户特别说明，应以用户使用的语言回复。'
 
 #-------------------------------------------------------------
 # add_admin
@@ -261,7 +258,7 @@ def get_channel_model_prompt(channel_id):
         SELECT chat_model, prompt, context_len
         FROM channel_settings
         WHERE channel_id = ?;
-    ''', (channel_id))
+    ''', (channel_id,))
     result = c.fetchone()
     sql.close()
     return result
@@ -277,21 +274,21 @@ def create_default_channel_settings(channel_id):
     # Check if the guild already exists in the guild_settings table
     c.execute('''
         SELECT COUNT(*)
-        FROM guild_settings
-        WHERE guild_id = ?;
+        FROM channel_settings
+        WHERE channel_id = ?;
     ''', (channel_id,))
     count = c.fetchone()[0]
 
     if count == 0:
         # If the guild doesn't exist, insert default values into guild_settings table
         c.execute('''
-            INSERT INTO guild_settings (guild_id, chat_model, prompt)
-            VALUES (?, ?, ?);
-        ''', (channel_id, 'claude-3-sonnet-20240229', SYSTEMPROMPT))
+            INSERT INTO channel_settings (channel_id, chat_model, prompt, context_len)
+            VALUES (?, ?, ?, ?);
+        ''', (channel_id, 'claude-3-sonnet-20240229', SYSTEMPROMPT, 5))
         sql.commit()
-        logger.info(f"Default settings inserted for guild {channel_id}")
+        logger.info(f"Default settings inserted for channel {channel_id}")
     else:
-        logger.info(f"Settings already exist for guild {channel_id}")
+        logger.info(f"Settings already exist for channel {channel_id}")
 
     sql.close()
 

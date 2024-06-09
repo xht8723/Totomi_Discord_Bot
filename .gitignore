@@ -15,3 +15,5 @@ channel.csv
 dm.csv
 guild.csv
 discord.log
+channel_settings.csv
+message.csv
