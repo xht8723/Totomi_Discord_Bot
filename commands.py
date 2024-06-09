@@ -229,6 +229,9 @@ async def tts(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1'):
         data = json.load(f)
     OPENAI_API = data['openAI-api']
     openaiClient = OpenAI(api_key=OPENAI_API)
+    await ctx.defer()
+    if not os.path.exists('cache'):
+        os.makedirs('cache')
     try:
         with openaiClient.with_streaming_response.audio.speech.create(model=model,voice=voice,input=prompt) as response:
             response.stream_to_file('cache/tts.mp3')
@@ -243,10 +246,14 @@ async def tts(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1'):
         voice_client = await channel.connect()
     else:
         voice_client = ctx.voice_client
-    voice_client.play(audio, after=lambda _:asyncio.run_coroutine_threadsafe(
-            coro = voice_client.disconnect(),
-            loop = voice_client.loop
-        ).result())
+    try:
+        voice_client.play(audio, after=lambda _:asyncio.run_coroutine_threadsafe(
+                coro = voice_client.disconnect(),
+                loop = voice_client.loop
+            ).result())
+    except discord.errors.ClientException as e:
+        logger.warn(e)
+        await ctx.send('I am already speaking.')
     ctx.send('TTS done.')
     
 #-------------------------------------------------------------
