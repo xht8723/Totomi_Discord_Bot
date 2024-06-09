@@ -145,3 +145,12 @@ class YTDL(commands.Cog):
                 loop = voiceClient.loop
             ).result())
         return
+    
+    #-------------------------------------------------------------
+    # getModelStatus
+    # This is a helper function that returns currently using AI model.
+    #-------------------------------------------------------------
+    @commands.command(description = 'Play personal music')
+    async def play84(self, ctx):
+        await ctx.invoke(self.play, 'https://www.youtube.com/playlist?list=PL9y52Flm1yM-b2y-JSHQOn_qm4lZnO72F')
+        return

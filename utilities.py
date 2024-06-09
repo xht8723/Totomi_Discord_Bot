@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import json
 import inspect
+import commands
 import logging
 logger = logging.getLogger('discord')
 #-------------------------------------------------------------
@@ -12,6 +13,15 @@ logger = logging.getLogger('discord')
 
 SQL = 'chat_history.db'#SQL data base location.
 CONFIG = 'config.json'#config.json location.
+MODELS = commands.MODELS
+
+#-------------------------------------------------------------
+# SYSTEMPROMPT
+# This is default system prompt.
+#-------------------------------------------------------------
+SYSTEMPROMPT = '''你是一个discord bot，你的名字叫远江, 你是一个女生，说话语气可爱，你会回答用户们的问题并且和用户们聊天。
+每次输入的开头中'<@numbers>'即是用户的名字id，每次回复都必须严格按照'<@numbers>'的格式提及用户。
+除非用户特别说明，应以用户使用的语言回复。'''
 
 #-------------------------------------------------------------
 # add_admin
@@ -164,6 +174,7 @@ def save_guild_message(channel_id, guild_id, user_id, text):
     c.execute('INSERT INTO message (channel_id, guild_id, user_id, text, created_at) VALUES (?, ?, ?, ?, ?)',
               (channel_id, guild_id, user_id, text, created_at))
     sql.commit()
+    sql.close()
     return 1
 
 #-------------------------------------------------------------
@@ -188,6 +199,101 @@ def get_latest_guild_messages(channel_id, guild_id, context_len):
     result = c.fetchall()
     sql.close()
     return result
+
+#-------------------------------------------------------------
+# change_channel_model
+# This is a support function to change the AI model for a channel
+#-------------------------------------------------------------
+def change_channel_model(channel_id, model):
+    if model in MODELS:
+        sql = sqlite3.connect(SQL)
+        c = sql.cursor()
+        c.execute('''
+            UPDATE channel_settings
+            SET chat_model = ?
+            WHERE channel_id = ?;
+        ''', (model, channel_id))
+        sql.commit()
+        return sql.close()
+    else:
+        return None
+    
+#-------------------------------------------------------------
+# change_channel_prompt
+# This is a support function to change the prompt for a channel
+#-------------------------------------------------------------
+def change_channel_prompt(channel_id, prompt):
+    sql = sqlite3.connect(SQL)
+    c = sql.cursor()
+    c.execute('''
+        UPDATE channel_settings
+        SET prompt = ?
+        WHERE channel_id = ?;
+    ''', (prompt, channel_id))
+    sql.commit()
+    sql.close()
+    return prompt
+
+#-------------------------------------------------------------
+# change_channel_context_len
+# This is a support function to change context length for a channel
+#-------------------------------------------------------------
+def change_channel_context_len(channel_id, len):
+    sql = sqlite3.connect(SQL)
+    c = sql.cursor()
+    c.execute('''
+        UPDATE channel_settings
+        SET context_len = ?
+        WHERE channel_id = ?;
+    ''', (len, channel_id))
+    sql.commit()
+    sql.close()
+    return len
+
+#-------------------------------------------------------------
+# get_channel_model_prompt
+# This is a support function to get prompt and model information for a channel
+#-------------------------------------------------------------
+def get_channel_model_prompt(channel_id):
+    sql = sqlite3.connect(SQL)
+    c = sql.cursor()
+    c.execute('''
+        SELECT chat_model, prompt, context_len
+        FROM channel_settings
+        WHERE channel_id = ?;
+    ''', (channel_id))
+    result = c.fetchone()
+    sql.close()
+    return result
+
+#-------------------------------------------------------------
+# get_channel_model_prrompt
+# This is a support function to get prompt and model information for a channel
+#-------------------------------------------------------------
+def create_default_channel_settings(channel_id):
+    sql = sqlite3.connect(SQL)
+    c = sql.cursor()
+
+    # Check if the guild already exists in the guild_settings table
+    c.execute('''
+        SELECT COUNT(*)
+        FROM guild_settings
+        WHERE guild_id = ?;
+    ''', (channel_id,))
+    count = c.fetchone()[0]
+
+    if count == 0:
+        # If the guild doesn't exist, insert default values into guild_settings table
+        c.execute('''
+            INSERT INTO guild_settings (guild_id, chat_model, prompt)
+            VALUES (?, ?, ?);
+        ''', (channel_id, 'claude-3-sonnet-20240229', SYSTEMPROMPT))
+        sql.commit()
+        logger.info(f"Default settings inserted for guild {channel_id}")
+    else:
+        logger.info(f"Settings already exist for guild {channel_id}")
+
+    sql.close()
 
 #-------------------------------------------------------------
 # initSQL
@@ -220,21 +326,16 @@ CREATE TABLE channel (
     FOREIGN KEY (guild_id) REFERENCES guild(id)
 );''')
     c.execute(
-'''CREATE TABLE dm_history (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT,
-    text TEXT,
-    created_at TEXT
+'''CREATE TABLE channel_settings (
+    channel_id TEXT PRIMARY KEY,
+    chat_model TEXT,
+    prompt TEXT,
+    context_len TEXT,
+    FOREIGN KEY (channel_id) REFERENCES channel(id)
 );''')
     return sql.close()
 
-#-------------------------------------------------------------
-# SYSTEMPROMPT
-# This is default system prompt.
-#-------------------------------------------------------------
-SYSTEMPROMPT = '''你是一个discord bot，你的名字叫远江, 你是一个女生，说话语气可爱，你会回答用户们的问题并且和用户们聊天。
-每次输入的开头中'<@numbers>'即是用户的名字id，每次回复都必须严格按照'<@numbers>'的格式提及用户。
-除非用户特别说明，应以用户使用的语言回复。'''
+
 
 #-------------------------------------------------------------
 # initJson
@@ -245,10 +346,9 @@ def initJson(token, claude3, openai, admin):
         'openAI-api':openai,
         'claude3-api':claude3,
         'discord-token':token,
-        'systemPrompt': SYSTEMPROMPT,
-        'model': 'gpt-3.5-turbo',
-        'normalModeContextLength':'5',
-        'threadModeContextLength':'-1',
+        'default_system_prompt': SYSTEMPROMPT,
+        'default_model': 'gpt-3.5-turbo',
+        'default_normalModeContextLength':'5',
         'admins':[admin],
         'commands': [
             {'command':'help', 'description':'```/help```\tHelp'},

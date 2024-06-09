@@ -113,8 +113,7 @@ class Totomi(commands.Bot):
             print('init SQL....')
             ut.initSQL()
 
-        model = await cmds.getModelStatus()
-        await self.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
+        await self.change_presence(activity=discord.CustomActivity(name = f'/help'))
 
         try:
             await self.tree.sync()

@@ -50,10 +50,11 @@ async def totomi(ctx, prompt: str):
     with open(CONFIG, 'r') as file:
         data = json.load(file)
 
-    systemP = data['systemPrompt']
-    model = data['model']
-    normalModeContextLength = data['normalModeContextLength']
-    threadModeContextLength = data['threadModeContextLength']
+    ut.create_default_channel_settings(ctx.channel.id)
+    channelInfo = ut.get_channel_model_prompt(ctx.channel.id)
+    systemP = channelInfo[1]
+    model = channelInfo[0]
+    normalModeContextLength = channelInfo[2]
 
     OPENAI_API = data['openAI-api']
     CLAUDE3_API = data['claude3-api']
@@ -129,8 +130,11 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
     fileExtension = fileExtension[1:]
     if fileExtension == 'jpg':
         fileExtension = 'jpeg'
-    systemP = data['systemPrompt']
-    model = data['model']
+
+    ut.create_default_channel_settings(ctx.channel.id)
+    channelInfo = ut.get_channel_model_prompt(ctx.channel.id)
+    systemP = channelInfo[1]
+    model = channelInfo[0]
     OPENAI_API = data['openAI-api']
     CLAUDE3_API = data['claude3-api']
 
@@ -263,9 +267,8 @@ async def ttstotomi(ctx, prompt: str, voice: str = 'nova', model: str = 'tts-1')
 @app_commands.describe(model = "gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku")
 async def usemodel(ctx, model: str):
     ut.logRequest(ctx, model)
+    ut.create_default_channel_settings(ctx.channel.id)
 
-    with open(CONFIG,'r') as file:
-        data = json.load(file)
     if not ut.isAdmin(str(ctx.author.id)):
         await ctx.send('You don\'t have the authorization to change AI models.')
         return
@@ -276,11 +279,9 @@ async def usemodel(ctx, model: str):
             model = 'claude-3-sonnet-20240229'
         if model == 'claude-3-haiku':
             model = 'claude-3-haiku-20240307'
-        data['model'] = model
+        ut.change_channel_model(ctx.channel.id, model)
         await ctx.send(f'Changed model to {model}')
         await ctx.bot.change_presence(activity=discord.CustomActivity(name = f'Using {model}'))
-        with open(CONFIG, 'w') as file:
-            json.dump(data, file, indent = '\t', ensure_ascii=False)
     else:
         await ctx.send(f'Check spelling, available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
     return
@@ -305,23 +306,17 @@ async def help(ctx):
 # This is a discord command to set context length for AI chat.
 #-------------------------------------------------------------
 @commands.hybrid_command(description = 'Change context length.(require admin)', help = 'mode = normal or thread. length = a number.')
-@app_commands.describe(mode='Mode of the context (normal/thread)', length='Length of the context')
-async def set_context_length(ctx, mode:str, length:str):
-    ut.logRequest(ctx, mode + ' ' + length)
-    with open(CONFIG, 'r') as file:
-        data = json.load(file)
-    
+@app_commands.describe(length='Length of the context')
+async def set_context_length(ctx, length:str):
+    ut.logRequest(ctx, length)
+    ut.create_default_channel_settings(ctx.channel.id)
     if not ut.isAdmin(str(ctx.author.id)):
         ctx.send('You don\'t have the authorization do set context length.')
         return
+    
+    ut.change_channel_context_len(ctx.channel.id, length)
+    await ctx.send(f'Set Normal mode context length to: {length}')
 
-    if mode == 'normal':
-        data['normalModeContextLength'] = length
-        await ctx.send(f'Set Normal mode context length to: {length}')
-
-    if mode == 'thread':
-        data['threadModeContextLength'] = length
-        await ctx.send(f'Set Normal mode context length to: {length}')
     return
 
 #-------------------------------------------------------------
@@ -331,10 +326,12 @@ async def set_context_length(ctx, mode:str, length:str):
 @commands.hybrid_command(description = 'check current model')
 async def check_model(ctx):
     ut.logRequest(ctx)
-    with open(CONFIG, 'r') as file:
-        data = json.load(file)
-    model = '**' + data['model'] + '**'
-    await ctx.send(f'Currently using LLM: {model}')
+    ut.create_default_channel_settings(ctx.channel.id)
+    data = ut.get_channel_model_prompt(ctx.channel.id)
+
+    model = '**' + data[0] + '**'
+    prompt = '**' + data[1] + '**'
+    await ctx.send(f'Currently using LLM: {model}, System prompt: {prompt}')
     await ctx.send('All available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
 
 #-------------------------------------------------------------
@@ -348,12 +345,9 @@ async def set_system_prompt(ctx, prompt:str):
     if not ut.isAdmin(str(ctx.author.id)):
         await ctx.send('You don\'t have the authorization to set system prompt')
         return
-    with open(CONFIG,'r') as file:
-        data = json.load(file)
-    data['systemPrompt'] = prompt
+    ut.create_default_channel_settings(ctx.channel.id)
+    ut.change_channel_prompt(ctx.channel.id, prompt)
     await ctx.send(f'Changed system prompt to: {prompt}')
-    with open(CONFIG, 'w') as file:
-        json.dump(data, file, indent = '\t', ensure_ascii=False)
     return
 
 #-------------------------------------------------------------
@@ -475,20 +469,6 @@ async def ollamaPost(**kwargs):
         ]
     }
     return data
-
-#-------------------------------------------------------------
-# getModelStatus
-# This is a helper function that returns currently using AI model.
-#-------------------------------------------------------------
-async def getModelStatus():
-    try:
-        with open(CONFIG, 'r') as file:
-            data = json.load(file) 
-        return data['model']
-    except:
-        logger.error('No config.json found')
-        print('No config.json found')
-        return
 
 #-------------------------------------------------------------
 # encode_image
