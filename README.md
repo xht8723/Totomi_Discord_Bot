@@ -44,9 +44,5 @@ You can change settings in ```config.json``` on the fly.
 ```commands``` this is used to show ```/help``` texts. You can modify them in the description part.  
 
 ### todos:  
-STT  
-context for ollama  
+STT   
 make this a COG  
-
-### knwon bugs:
-newchat doesnt work.
