@@ -337,7 +337,9 @@ async def check_model(ctx):
 
     model = '**' + data[0] + '**'
     prompt = '**' + data[1] + '**'
-    await ctx.send(f'Currently using LLM: {model}\n\n System prompt: {prompt}\n\nAll available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
+    context_len = '**' + data[2] + '**'
+    await ctx.send(f'Currently using LLM: {model}\n\n System prompt: {prompt}\n\nContext length: {context_len}\n\nAll available models: *gpt-3.5-turbo, gpt-4o, gpt-4-turbo, ollama, claude-3-opus, claude-3-sonnet, claude-3-haiku*')
+    return
 
 #-------------------------------------------------------------
 # set_system_prompt
