@@ -229,18 +229,15 @@ async def get_latest_guild_messages(channel_id, guild_id, context_len):
 # This is a support function to change the AI model for a channel
 #-------------------------------------------------------------
 async def change_channel_model(channel_id, model):
-    if model in MODELS:
-        sql = sqlite3.connect(SQL)
-        c = sql.cursor()
-        c.execute('''
-            UPDATE channel_settings
-            SET chat_model = ?
-            WHERE channel_id = ?;
-        ''', (model, channel_id))
-        sql.commit()
-        return sql.close()
-    else:
-        return None
+    sql = sqlite3.connect(SQL)
+    c = sql.cursor()
+    c.execute('''
+        UPDATE channel_settings
+        SET chat_model = ?
+        WHERE channel_id = ?;
+    ''', (model, channel_id))
+    sql.commit()
+    return sql.close()
     
 #-------------------------------------------------------------
 # change_channel_prompt
@@ -255,8 +252,7 @@ async def change_channel_prompt(channel_id, prompt):
         WHERE channel_id = ?;
     ''', (prompt, channel_id))
     sql.commit()
-    sql.close()
-    return prompt
+    return sql.close()
 
 #-------------------------------------------------------------
 # change_channel_context_len
@@ -318,8 +314,7 @@ async def create_default_channel_settings(channel_id):
         sql.commit()
         logger.info(f"Default settings inserted for channel {channel_id}")
     else:
-        logger.info(f"Settings already exist for channel {channel_id}")
-
+        pass
     sql.close()
 
 #-------------------------------------------------------------
