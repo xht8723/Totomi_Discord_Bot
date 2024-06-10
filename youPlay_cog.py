@@ -67,7 +67,10 @@ class YTDL(commands.Cog):
             logger.info(e)
             await ctx.voice_client.disconnect()
             return
-        channel = ctx.author.voice.channel
+        try:
+            channel = ctx.author.voice.channel
+        except AttributeError as e:
+            pass
         if channel is not None and ctx.voice_client is None:
             voice_client = await channel.connect()
         else:
