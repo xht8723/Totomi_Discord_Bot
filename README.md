@@ -9,13 +9,9 @@ https://github.com/xht8723/Totomi_Discord_Bot/assets/15156436/2eb809d8-4af8-4af8
 Based on [discord.py](https://github.com/Rapptz/discord.py)
 
 ## Dependencies
-```pip install discord.py[voice]```  
-```pip install openai```  
-```pip install anthropic```  
-```pip install yt_dlp```  
-```pip install aioconsole```  
-
-have ffmpeg in your path to use youtube play music cog.
+python3  
+```pip install -r requirements.txt```  
+you need to have ffmpeg in your path to use youtube play music cog.  
 
 ## Use
 download the repo and unzip to your prefered location  

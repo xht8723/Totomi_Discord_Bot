@@ -8,14 +8,10 @@
 基于[discord.py](https://github.com/Rapptz/discord.py)  
 你需要有自己的llm api  
 
-## Dependencies 需求python模组
-```pip install discord.py[voice]```  
-```pip install openai```  
-```pip install anthropic```  
-```pip install yt_dlp```  
-```pip install aioconsole```  
-
-需要ffmpeg在系统运行环境中。
+## Dependencies 安装需求
+python3  
+```pip install -r requirements.txt```  
+需要ffmpeg在系统运行环境中。  
 
 ## 使用
 下载这个repo并解压  
