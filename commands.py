@@ -76,7 +76,9 @@ async def totomi(ctx, prompt: str):
             data = ollamaPost(prompt=prompt, system = systemP, context = context)
             post = requests.post(url, json=data)
             jsondata = post.json()
-            await ctx.send(jsondata['message']['content'])
+            rply = await split_message(jsondata['message']['content'])
+            for each in rply:
+                await ctx.send(each)
             await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), jsondata['message']['content'])
         except Exception as e:
@@ -90,7 +92,10 @@ async def totomi(ctx, prompt: str):
                                      img = None, attachment = None, api = OPENAI_API)
             reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
             reply_raw = data.choices[0].message.content
-            await ctx.send(reply)
+
+            reply = await split_message(reply)
+            for each in reply:
+                await ctx.send(each)
 
             await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
@@ -105,7 +110,10 @@ async def totomi(ctx, prompt: str):
                                      img = None, attachment = None, api = CLAUDE3_API)
             reply = data.content[0].text + '\n\n' + '*token spent: ' + str(data.usage.input_tokens + data.usage.output_tokens) + '*'
             reply_raw = data.content[0].text
-            await ctx.send(reply)
+
+            reply = await split_message(reply)
+            for each in reply:
+                await ctx.send(each)
 
             await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt)
             await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
@@ -168,7 +176,9 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
                                 model = model, context = None, ctx = ctx, 
                                 img = imgDataUrl, attachment = None, fileExtension = fileExtension, api = OPENAI_API)
         reply = data.choices[0].message.content + '\n\n' + '*token spent: ' + str(data.usage.total_tokens) + '*'
-        await ctx.send(reply)
+        reply = await split_message(reply)
+        for each in reply:
+            await ctx.send(each)
         await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
         await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.choices[0].message.content)
 
@@ -177,7 +187,9 @@ async def imgtotomi(ctx, prompt: str, image: discord.Attachment):
                                 model = model, context = None, ctx = ctx, 
                                 img = b64img, attachment = None, fileExtension = fileExtension, api = CLAUDE3_API)
         reply = data.content[0].text + '\n\n' + '*token spent: ' + str(data.usage.input_tokens + data.usage.output_tokens) + '*'
-        await ctx.send(reply)
+        reply = await split_message(reply)
+        for each in reply:
+            await ctx.send(each)
         await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.author.id), prompt + 'uploaded img: ' + str(image.id))
         await ut.save_guild_message(str(ctx.channel.id), guild, str(ctx.me.id), data.content[0].text)
 
@@ -502,3 +514,13 @@ async def ollamaPost(**kwargs):
 async def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
+    
+#-------------------------------------------------------------
+# split_message
+# This is a helper function for split long messages to avoid discord HTTP error.
+#-------------------------------------------------------------
+async def split_message(message):
+    if len(message) > 2000:
+        return [message[i:i+2000] for i in range(0, len(message), 2000)]
+    else:
+        return [message]
