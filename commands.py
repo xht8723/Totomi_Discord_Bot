@@ -518,7 +518,7 @@ async def ollamaPost(**kwargs):
 @app_commands.describe(msg = 'message to be sent')
 async def dynamic_time(ctx, time:str, msg:str = ''):
     ut.logRequest(ctx, time)
-    dt = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+    dt = datetime.datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
     unix_time = int(tm.mktime(dt.timetuple()))
     discord_timestamp_R = f"<t:{unix_time}:R>"
     discord_timestamp = f"<t:{unix_time}>"
