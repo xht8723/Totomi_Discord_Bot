@@ -12,6 +12,7 @@ import os
 import asyncio
 import logging
 import datetime
+import time as tm
 logger = logging.getLogger('discord')
 #-------------------------------------------------------------
 # commands
@@ -518,7 +519,7 @@ async def ollamaPost(**kwargs):
 async def dynamic_time(ctx, time:str, msg:str = ''):
     ut.logRequest(ctx, time)
     dt = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
-    unix_time = int(time.mktime(dt.timetuple()))
+    unix_time = int(tm.mktime(dt.timetuple()))
     discord_timestamp_R = f"<t:{unix_time}:R>"
     discord_timestamp = f"<t:{unix_time}>"
     await ctx.send(msg + "\n" + discord_timestamp + "\n" + discord_timestamp_R + "\n")
