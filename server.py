@@ -92,6 +92,7 @@ class Totomi(commands.Bot):
         self.add_command(cmds.set_system_prompt)
         self.add_command(cmds.tts)
         self.add_command(cmds.ttstotomi)
+        self.add_command(cmds.timestamp)
 
     #-------------------------------------------------------------
     # setup_hook

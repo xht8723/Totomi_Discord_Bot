@@ -11,6 +11,7 @@ import base64
 import os
 import asyncio
 import logging
+import datetime
 logger = logging.getLogger('discord')
 #-------------------------------------------------------------
 # commands
@@ -506,6 +507,37 @@ async def ollamaPost(**kwargs):
         ]
     }
     return data
+
+#-------------------------------------------------------------
+# timestamp
+# create a timestamp
+#-------------------------------------------------------------
+@commands.hybrid_command(description = 'creat discord timestamp')
+@app_commands.describe(prompt = 'time format: YYYY-MM-DD HH:MM:SS')
+@app_commands.describe(msg = 'message to be sent')
+async def timestamp(ctx, time:str, msg:str = ''):
+    ut.logRequest(ctx, time)
+    dt = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+    unix_time = int(time.mktime(dt.timetuple()))
+    discord_timestamp_R = f"<t:{unix_time}:R>"
+    discord_timestamp = f"<t:{unix_time}>"
+    await ctx.send(msg + "\n" + discord_timestamp + "\n" + discord_timestamp_R + "\n")
+    return
+
+#-------------------------------------------------------------
+# unix_time to human readable time
+# This is a helper function to convert unix time to human readable time.
+#-------------------------------------------------------------
+async def unix_time(unixtime):
+    return datetime.datetime.fromtimestamp(int(unixtime)).strftime('%Y-%m-%d %H:%M:%S')
+
+#-------------------------------------------------------------
+# read_time to unix time
+# This is a helper function to convert unix time to human readable time.
+#-------------------------------------------------------------
+async def read_time(time):
+    return int(datetime.datetime.strptime(time, '%Y-%m-%d %H:%M:%S').timestamp())
+
 
 #-------------------------------------------------------------
 # encode_image
